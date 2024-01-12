@@ -22,8 +22,8 @@ import javax.annotation.Nonnull;
 )
 public class IC2Additions {
     public static final String MOD_ID = "ic2additions";
-    public static final String MOD_NAME = "Starshine Core";
-    public static final String VERSION = "1.1";
+    public static final String MOD_NAME = "IC2 Additions";
+    public static final String VERSION = "1.0";
     public static Logger logger;
 
     @SubscribeEvent
