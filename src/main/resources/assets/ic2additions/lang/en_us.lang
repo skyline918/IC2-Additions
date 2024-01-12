@@ -1,0 +1,13 @@
+itemGroup.ic2additions=IC2 Additions
+
+item.miner_1.name=Miner I"
+item.miner_2.name=Miner II"
+item.miner_3.name=Miner III"
+item.miner_4.name=Miner IV"
+item.miner_5.name=Miner V"
+
+tile.miner_1.name=Miner I
+tile.miner_2.name=Miner II
+tile.miner_3.name=Miner III
+tile.miner_4.name=Miner IV
+tile.miner_5.name=Miner V

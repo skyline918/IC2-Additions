@@ -1,0 +1,13 @@
+itemGroup.ic2additions=IC2 Additions
+
+item.miner_1.name=Шахтер I
+item.miner_2.name=Шахтер II
+item.miner_3.name=Шахтер III
+item.miner_4.name=Шахтер IV
+item.miner_5.name=Шахтер V
+
+tile.miner_1.name=Шахтер I
+tile.miner_2.name=Шахтер II
+tile.miner_3.name=Шахтер III
+tile.miner_4.name=Шахтер IV
+tile.miner_5.name=Шахтер V

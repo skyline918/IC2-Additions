@@ -13,6 +13,12 @@ public class TileEntityMiner extends TileEntity implements ITickable {
     BasicSink ic2EnergySink;
     IC2AdditionsConfig.Miner config;
 
+    @SuppressWarnings("unused") // default constructor for minecraft
+    public TileEntityMiner() {
+        this.ic2EnergySink = new BasicSink(this, IC2AdditionsConfig.miner_1.capacity, IC2AdditionsConfig.miner_1.tier);
+        this.config = IC2AdditionsConfig.miner_1;
+    }
+
     public TileEntityMiner(IC2AdditionsConfig.Miner config) {
         this.ic2EnergySink = new BasicSink(this, config.capacity, config.tier);
         this.config = config;

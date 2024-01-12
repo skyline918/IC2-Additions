@@ -1,0 +1,31 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "up": "ic2additions:blocks/miner_top",
+      "down": "ic2additions:blocks/miner_bottom",
+      "north": "ic2additions:blocks/miner_front",
+      "south": "ic2additions:blocks/miner_side",
+      "west": "ic2additions:blocks/miner_side",
+      "east": "ic2additions:blocks/miner_side",
+      "active_up": "ic2additions:blocks/miner_top_active",
+      "active_down": "ic2additions:blocks/miner_bottom",
+      "active_north": "ic2additions:blocks/miner_front",
+      "active_south": "ic2additions:blocks/miner_side",
+      "active_west": "ic2additions:blocks/miner_side",
+      "active_east": "ic2additions:blocks/miner_side"
+    }
+  },
+  "variants": {
+    "normal": [{"model": "ic2additions:active_machine"}],
+    "inventory": [{"model": "ic2additions:active_machine"}],
+    "facing=north,working=true": {"model": "ic2additions:active_machine"},
+    "facing=south,working=true": {"model": "ic2additions:active_machine", "y": 180},
+    "facing=west,working=true": {"model": "ic2additions:active_machine", "y": 270},
+    "facing=east,working=true": {"model": "ic2additions:active_machine", "y": 90},
+    "facing=north,working=false": {"model": "ic2additions:machine"},
+    "facing=south,working=false": {"model": "ic2additions:machine", "y": 180},
+    "facing=west,working=false": {"model": "ic2additions:machine", "y": 270},
+    "facing=east,working=false": {"model": "ic2additions:machine", "y": 90}
+  }
+}

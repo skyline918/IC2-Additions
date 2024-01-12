@@ -7,6 +7,7 @@ import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyDirection;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -27,6 +28,11 @@ public class BlockMiner extends Block implements IWrenchable {
 
     IC2AdditionsConfig.Miner config;
 
+    @Override
+    protected @Nonnull BlockStateContainer createBlockState() {
+        return new BlockStateContainer(this, WORKING, FACING);
+    }
+
     public BlockMiner(IC2AdditionsConfig.Miner config) {
         super(Material.IRON);
         this.setDefaultState(getBlockState().getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(WORKING, false));
@@ -40,31 +46,38 @@ public class BlockMiner extends Block implements IWrenchable {
     }
 
     @Override
+    public boolean hasTileEntity(@Nonnull IBlockState state) {
+        return true;
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
     public @Nonnull IBlockState getStateFromMeta(int meta) {
-        boolean fourthBitIsSet = (meta & 4) > 0;
-        int firstThreeBits = (meta & 3);
+        boolean thirdBitIsSet = (meta & 0b0100) > 0;
+        int rotationBits = (meta & 0b0011);
         return this.getDefaultState()
-                .withProperty(WORKING, fourthBitIsSet)
-                .withProperty(FACING, EnumFacing.byIndex(5 - firstThreeBits));
+                .withProperty(WORKING, thirdBitIsSet)
+                .withProperty(FACING, EnumFacing.byHorizontalIndex(rotationBits));
     }
 
     @Override
     public int getMetaFromState(@Nonnull IBlockState state) {
         int i = 0;
-        if (state.getValue(WORKING)) i |= 4;
-        i = i | (5 - state.getValue(FACING).getIndex());
+        if (state.getValue(WORKING)) i |= 0b0100;
+        i = i | state.getValue(FACING).getHorizontalIndex();
         return i;
     }
 
     @Override
     public EnumFacing getFacing(World world, BlockPos blockPos) {
-        return null;
+        return world.getBlockState(blockPos).getValue(FACING);
     }
 
     @Override
-    public boolean setFacing(World world, BlockPos blockPos, EnumFacing enumFacing, EntityPlayer entityPlayer) {
-        return false;
+    public boolean setFacing(World world, BlockPos pos, EnumFacing enumFacing, EntityPlayer entityPlayer) {
+        if (enumFacing.getAxis() == EnumFacing.Axis.Y) return false;
+
+        return world.setBlockState(pos, world.getBlockState(pos).withProperty(FACING, enumFacing));
     }
 
     @Override
