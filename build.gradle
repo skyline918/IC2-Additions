@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+group = 'ru.starshineproject'
+version = '0.0'
+
+java {
+    archivesBaseName = 'ic2-additions'
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+}
+
+minecraft {
+    mappings channel: 'stable', version: '39-1.12'
+
+    accessTransformer = file('src/main/resources/META-INF/ic2additions_at.cfg')
+
+    runs {
+        client {
+            workingDirectory project.file('runClient')
+            property 'forge.logging.markers', 'REGISTRIES'
+            args "--username", "devplayer"
+            property 'forge.logging.console.level', 'info'
+            mods {
+                ic2additions {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('runServer')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                ic2additions {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+
+repositories {
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
+    implementation(files("libs/industrialcraft-2-2.8.222-ex112-api.jar"))
+}
+
+jar.finalizedBy('reobfJar' )
