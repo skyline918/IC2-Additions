@@ -4,7 +4,7 @@
     "textures": {
       "up": "ic2additions:blocks/miner_top",
       "down": "ic2additions:blocks/miner_bottom",
-      "north": "ic2additions:blocks/miner_front",
+      "north": "ic2additions:blocks/miner_front_off",
       "south": "ic2additions:blocks/miner_side",
       "west": "ic2additions:blocks/miner_side",
       "east": "ic2additions:blocks/miner_side",
