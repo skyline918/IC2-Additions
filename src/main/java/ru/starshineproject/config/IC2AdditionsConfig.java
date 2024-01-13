@@ -1,4 +1,4 @@
-package config;
+package ru.starshineproject.config;
 
 import net.minecraftforge.common.config.Config;
 

@@ -1,6 +1,5 @@
-package block;
+package ru.starshineproject.block;
 
-import config.IC2AdditionsConfig;
 import ic2.api.tile.IWrenchable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
@@ -9,16 +8,22 @@ import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyDirection;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import tile.TileEntityMiner;
+import ru.starshineproject.IC2Additions;
+import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.gui.GuiMiner;
+import ru.starshineproject.tile.TileEntityMiner;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 public class BlockMiner extends Block implements IWrenchable {
@@ -39,6 +44,12 @@ public class BlockMiner extends Block implements IWrenchable {
         this.config = config;
     }
 
+    @ParametersAreNonnullByDefault
+    public @Nonnull IBlockState getStateForPlacement(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer, EnumHand hand)
+    {
+        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing()).withProperty(WORKING, false);
+    }
+
     @Nullable
     @Override
     public TileEntity createTileEntity(@Nonnull World world, @Nonnull IBlockState state) {
@@ -47,6 +58,18 @@ public class BlockMiner extends Block implements IWrenchable {
 
     @Override
     public boolean hasTileEntity(@Nonnull IBlockState state) {
+        return true;
+    }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+        if (world.isRemote) return true;
+        TileEntity tile = world.getTileEntity(pos);
+        if (tile instanceof TileEntityMiner) {
+            playerIn.openGui(IC2Additions.instance, GuiMiner.id, world, pos.getX(), pos.getY(), pos.getZ());
+            return true;
+        }
         return true;
     }
 
@@ -89,4 +112,5 @@ public class BlockMiner extends Block implements IWrenchable {
     public List<ItemStack> getWrenchDrops(World world, BlockPos blockPos, IBlockState iBlockState, TileEntity tileEntity, EntityPlayer entityPlayer, int i) {
         return null;
     }
+
 }

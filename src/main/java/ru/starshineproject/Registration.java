@@ -1,5 +1,6 @@
-import block.BlockMiner;
-import config.IC2AdditionsConfig;
+package ru.starshineproject;
+
+import ru.starshineproject.block.BlockMiner;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -11,7 +12,8 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
-import tile.TileEntityMiner;
+import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.tile.TileEntityMiner;
 
 @Mod.EventBusSubscriber
 public class Registration {
