@@ -11,3 +11,5 @@ tile.miner_2.name=Miner II
 tile.miner_3.name=Miner III
 tile.miner_4.name=Miner IV
 tile.miner_5.name=Miner V
+
+message.forbidden.miner-owned-by-other-player=This miner is owned by '%s'

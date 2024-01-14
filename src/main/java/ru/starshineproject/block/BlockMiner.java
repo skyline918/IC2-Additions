@@ -10,11 +10,14 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.config.IC2AdditionsConfig;
@@ -24,6 +27,7 @@ import ru.starshineproject.tile.TileEntityMiner;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collections;
 import java.util.List;
 
 public class BlockMiner extends Block implements IWrenchable {
@@ -57,19 +61,35 @@ public class BlockMiner extends Block implements IWrenchable {
     }
 
     @Override
+    @ParametersAreNonnullByDefault
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, IBlockState state, EntityLivingBase placer, ItemStack stack) {
+        super.onBlockPlacedBy(worldIn, pos, state, placer, stack);
+
+        TileEntity tile = worldIn.getTileEntity(pos);
+        if (placer instanceof EntityPlayer && tile instanceof TileEntityMiner) {
+            ((TileEntityMiner) tile).setOwner((EntityPlayer) placer);
+        }
+    }
+
+    @Override
     public boolean hasTileEntity(@Nonnull IBlockState state) {
         return true;
     }
 
     @Override
     @ParametersAreNonnullByDefault
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         if (world.isRemote) return true;
         TileEntity tile = world.getTileEntity(pos);
-        if (tile instanceof TileEntityMiner) {
-            playerIn.openGui(IC2Additions.instance, GuiMiner.id, world, pos.getX(), pos.getY(), pos.getZ());
+        if (!(tile instanceof TileEntityMiner)) return true;
+        TileEntityMiner miner = (TileEntityMiner) tile;
+
+        if (!miner.canBeUsedBy(player)) {
+            notifyInteractionForbidden(player);
             return true;
         }
+
+        player.openGui(IC2Additions.instance, GuiMiner.id, world, pos.getX(), pos.getY(), pos.getZ());
         return true;
     }
 
@@ -104,13 +124,26 @@ public class BlockMiner extends Block implements IWrenchable {
     }
 
     @Override
-    public boolean wrenchCanRemove(World world, BlockPos blockPos, EntityPlayer entityPlayer) {
-        return true;
+    public boolean wrenchCanRemove(World world, BlockPos pos, EntityPlayer player) {
+        if (IC2AdditionsConfig.ownershipEnabled) return true;
+
+        TileEntity tile = world.getTileEntity(pos);
+        if (!(tile instanceof TileEntityMiner)) return true;
+        TileEntityMiner miner = ((TileEntityMiner) tile);
+
+        boolean allowed = miner.canBeUsedBy(player);
+        if (!allowed) notifyInteractionForbidden(player);
+        return allowed;
+    }
+
+    private void notifyInteractionForbidden(EntityPlayer player) {
+        player.sendMessage(new TextComponentTranslation("message.forbidden.miner-owned-by-other-player"));
     }
 
     @Override
-    public List<ItemStack> getWrenchDrops(World world, BlockPos blockPos, IBlockState iBlockState, TileEntity tileEntity, EntityPlayer entityPlayer, int i) {
-        return null;
+    public List<ItemStack> getWrenchDrops(World world, BlockPos blockPos, IBlockState state, TileEntity tileEntity, EntityPlayer entityPlayer, int i) {
+        Item item = ItemBlock.getItemFromBlock(state.getBlock());
+        return Collections.singletonList(new ItemStack(item));
     }
 
 }

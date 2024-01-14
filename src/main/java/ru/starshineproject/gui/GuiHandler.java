@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import ru.starshineproject.container.ContainerMiner;
+import ru.starshineproject.tile.TileEntityMiner;
 
 import javax.annotation.Nullable;
 
@@ -22,7 +23,7 @@ public class GuiHandler implements IGuiHandler {
         if (!(tile instanceof IInventory)) return null;
 
         switch (ID) {
-            case GuiMiner.id: return new ContainerMiner(player.inventory, (IInventory) tile);
+            case GuiMiner.id: return tile instanceof TileEntityMiner ? new ContainerMiner(player.inventory, (TileEntityMiner) tile) : null;
         }
         return null;
     }
@@ -35,13 +36,13 @@ public class GuiHandler implements IGuiHandler {
 
         if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
             switch (ID) {
-                case GuiMiner.id: return new ContainerMiner(player.inventory, (IInventory) tile);
+                case GuiMiner.id: return tile instanceof TileEntityMiner ? new ContainerMiner(player.inventory, (TileEntityMiner) tile) : null;
             }
             return null;
         }
 
         switch (ID) {
-            case GuiMiner.id: return new GuiMiner(player.inventory, (IInventory) tile);
+            case GuiMiner.id: return tile instanceof TileEntityMiner ? new GuiMiner(player.inventory, (TileEntityMiner) tile) : null;
         }
         return null;
     }

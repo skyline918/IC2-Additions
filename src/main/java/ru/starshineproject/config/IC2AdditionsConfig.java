@@ -5,6 +5,8 @@ import net.minecraftforge.common.config.Config;
 @Config(modid = "ic2additions", name = "IC2 Additions")
 public class IC2AdditionsConfig {
 
+    public static boolean ownershipEnabled = false;
+
     public static Miner miner_1 = new Miner(1);
     public static Miner miner_2 = new Miner(2);
     public static Miner miner_3 = new Miner(3);

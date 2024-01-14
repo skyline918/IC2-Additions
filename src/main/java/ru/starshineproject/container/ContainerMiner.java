@@ -1,25 +1,31 @@
 package ru.starshineproject.container;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
+import net.minecraft.inventory.IContainerListener;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
+import ru.starshineproject.tile.TileEntityMiner;
 
 import javax.annotation.Nonnull;
 
 public class ContainerMiner extends Container {
-    private final IInventory inventory;
+    private final TileEntityMiner miner;
+    private double lastEnergy = 0;
+    private double lastMessage = 0;
 
-    public ContainerMiner(IInventory playerInventory, IInventory minerInventory) {
-        this.inventory = minerInventory;
+    public ContainerMiner(IInventory playerInventory, TileEntityMiner miner) {
+        this.miner = miner;
         int numRows = 6;
         int playerInventoryOffset = (numRows - 4) * 18;
 
         int index = 0;
         for (int j = 0; j < numRows; ++j)
             for (int k = 6; k < 9; ++k) {
-                this.addSlotToContainer(new Slot(inventory, index, 8 + k * 18, 18 + j * 18));
+                this.addSlotToContainer(new Slot(this.miner, index, 8 + k * 18, 18 + j * 18));
                 index++;
             }
 
@@ -35,7 +41,27 @@ public class ContainerMiner extends Container {
 
     @Override
     public boolean canInteractWith(@Nonnull EntityPlayer playerIn) {
-        return inventory.isUsableByPlayer(playerIn);
+        return miner.isUsableByPlayer(playerIn);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        if (energyChanged()) {
+            lastEnergy = miner.ic2EnergySink.getEnergyStored();
+            SPacketUpdateTileEntity spacketupdatetileentity = miner.getUpdatePacket();
+            if (spacketupdatetileentity == null) return;
+
+            for (IContainerListener listener : listeners) {
+                if (!(listener instanceof EntityPlayerMP)) continue;
+                EntityPlayerMP player = ((EntityPlayerMP) listener);
+                player.connection.sendPacket(spacketupdatetileentity);
+            }
+        }
+    }
+
+    private boolean energyChanged() {
+        return lastEnergy != miner.ic2EnergySink.getEnergyStored();
     }
 
     public @Nonnull ItemStack transferStackInSlot(@Nonnull EntityPlayer playerIn, int index)
@@ -50,28 +76,18 @@ public class ContainerMiner extends Container {
             if (index < 18)
             {
                 if (!this.mergeItemStack(itemstack1, 18, 54, true))
-                {
                     return ItemStack.EMPTY;
-                }
             }
             else if (!this.mergeItemStack(itemstack1, 0, 18, false))
-            {
                 return ItemStack.EMPTY;
-            }
 
             if (itemstack1.isEmpty())
-            {
                 slot.putStack(ItemStack.EMPTY);
-            }
             else
-            {
                 slot.onSlotChanged();
-            }
 
             if (itemstack1.getCount() == itemstack.getCount())
-            {
                 return ItemStack.EMPTY;
-            }
 
             slot.onTake(playerIn, itemstack1);
         }
