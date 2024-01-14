@@ -1,6 +1,5 @@
 package ru.starshineproject.tile;
 
-import net.minecraft.inventory.ItemStackHelper;
 import ru.starshineproject.config.IC2AdditionsConfig;
 import ic2.api.energy.prefab.BasicSink;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,6 +11,7 @@ import net.minecraft.tileentity.TileEntityLockableLoot;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import ru.starshineproject.container.ContainerMiner;
+import ru.starshineproject.nbt.OvercapNBTHelper;
 
 import javax.annotation.Nonnull;
 
@@ -67,14 +67,15 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
 
         this.inventory = NonNullList.withSize(this.getSizeInventory(), ItemStack.EMPTY);
         if (!this.checkLootAndRead(tag))
-            ItemStackHelper.loadAllItems(tag, this.inventory);
+            OvercapNBTHelper.loadAllItems(tag, this.inventory);
     }
 
     @Override
     public @Nonnull NBTTagCompound writeToNBT(@Nonnull NBTTagCompound tag) {
         super.writeToNBT(tag);
         ic2EnergySink.writeToNBT(tag);
-        if (!this.checkLootAndWrite(tag)) ItemStackHelper.saveAllItems(tag, this.inventory);
+        if (!this.checkLootAndWrite(tag))
+            OvercapNBTHelper.saveAllItems(tag, this.inventory);
         return tag;
     }
 
@@ -95,7 +96,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
 
     @Override
     public int getInventoryStackLimit() {
-        return 64;
+        return 999;
     }
 
     @Override
