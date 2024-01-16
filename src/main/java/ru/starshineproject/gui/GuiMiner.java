@@ -34,6 +34,7 @@ public class GuiMiner extends GuiContainer {
         ), 10, 20, FONT_COLOR);
         fontRenderer.drawString(String.format("IC2 Tier: %d", miner.ic2EnergySink.getSinkTier()), 10, 30, FONT_COLOR);
         fontRenderer.drawString(String.format("Owner: %s", miner.ownerName), 10, 40, FONT_COLOR);
+        fontRenderer.drawString(String.format("Status: %s", miner.status), 10, 50, FONT_COLOR);
 
     }
 

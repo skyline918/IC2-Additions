@@ -15,7 +15,7 @@ import javax.annotation.Nonnull;
 public class ContainerMiner extends Container {
     private final TileEntityMiner miner;
     private double lastEnergy = 0;
-    private double lastMessage = 0;
+    private TileEntityMiner.Status lastStatus = TileEntityMiner.Status.DISABLED_CONFIG;
 
     public ContainerMiner(IInventory playerInventory, TileEntityMiner miner) {
         this.miner = miner;
@@ -47,8 +47,9 @@ public class ContainerMiner extends Container {
     @Override
     public void detectAndSendChanges() {
         super.detectAndSendChanges();
-        if (energyChanged()) {
+        if (energyChanged() || updateStatus()) {
             lastEnergy = miner.ic2EnergySink.getEnergyStored();
+            lastStatus = miner.status;
             SPacketUpdateTileEntity spacketupdatetileentity = miner.getUpdatePacket();
             if (spacketupdatetileentity == null) return;
 
@@ -62,6 +63,10 @@ public class ContainerMiner extends Container {
 
     private boolean energyChanged() {
         return lastEnergy != miner.ic2EnergySink.getEnergyStored();
+    }
+
+    private boolean updateStatus(){
+        return lastStatus != miner.status;
     }
 
     public @Nonnull ItemStack transferStackInSlot(@Nonnull EntityPlayer playerIn, int index)
