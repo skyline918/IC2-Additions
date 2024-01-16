@@ -2,18 +2,18 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "up": "ic2additions:blocks/miner_top",
-      "down": "ic2additions:blocks/miner_bottom",
-      "north": "ic2additions:blocks/miner_front_off",
-      "south": "ic2additions:blocks/miner_side",
-      "west": "ic2additions:blocks/miner_side",
-      "east": "ic2additions:blocks/miner_side",
-      "active_up": "ic2additions:blocks/miner_top_active",
-      "active_down": "ic2additions:blocks/miner_bottom",
-      "active_north": "ic2additions:blocks/miner_front",
-      "active_south": "ic2additions:blocks/miner_side",
-      "active_west": "ic2additions:blocks/miner_side",
-      "active_east": "ic2additions:blocks/miner_side"
+      "up": "ic2additions:blocks/miner_3/miner_top",
+      "down": "ic2additions:blocks/miner_3/miner_bottom",
+      "north": "ic2additions:blocks/miner_3/miner_front_off",
+      "south": "ic2additions:blocks/miner_3/miner_side",
+      "west": "ic2additions:blocks/miner_3/miner_side",
+      "east": "ic2additions:blocks/miner_3/miner_side",
+      "active_up": "ic2additions:blocks/miner_3/miner_top_active",
+      "active_down": "ic2additions:blocks/miner_3/miner_bottom",
+      "active_north": "ic2additions:blocks/miner_3/miner_front",
+      "active_south": "ic2additions:blocks/miner_3/miner_side",
+      "active_west": "ic2additions:blocks/miner_3/miner_side",
+      "active_east": "ic2additions:blocks/miner_3/miner_side"
     }
   },
   "variants": {
