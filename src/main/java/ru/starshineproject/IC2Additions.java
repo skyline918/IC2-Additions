@@ -50,12 +50,12 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-
+        Registration.discoverOres();
     }
 
     @Mod.EventHandler
     public void onServerStart(FMLServerStartingEvent event) {
-
+        Registration.registerCommands(event);
     }
 
     @SuppressWarnings("unused")

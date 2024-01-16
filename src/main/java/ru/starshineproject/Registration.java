@@ -1,5 +1,11 @@
 package ru.starshineproject;
 
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.oredict.OreDictionary;
 import ru.starshineproject.block.BlockMiner;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -12,8 +18,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
+import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.item.ItemMiner;
 import ru.starshineproject.tile.TileEntityMiner;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static ru.starshineproject.tile.TileEntityMiner.VALID_ORES;
 
 @Mod.EventBusSubscriber
 public class Registration {
@@ -31,15 +44,66 @@ public class Registration {
 
     }
 
+    public static void registerCommands(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandReloadConfig());
+
+    }
+
+    @SubscribeEvent
+    public static void onConfigChanged(final ConfigChangedEvent.OnConfigChangedEvent event) {
+        if (event.getModID().equals(IC2Additions.MOD_ID)) {
+            ConfigManager.sync(IC2Additions.MOD_ID, Config.Type.INSTANCE);
+            discoverOres();
+        }
+    }
+
+    public static void discoverOres() {
+        VALID_ORES.clear();
+        if (IC2AdditionsConfig.blocksToMine.length == 0) {
+            List<String> newOres = new ArrayList<>();
+            for (String oreName : OreDictionary.getOreNames()) {
+                if (oreName.startsWith("ore")) {
+                    for (ItemStack ore : OreDictionary.getOres(oreName)) {
+                        if (ore.getItem() instanceof ItemBlock) {
+                            if (ore.getItem().getRegistryName() == null) continue;
+
+                            VALID_ORES.put(ore.getItem(), ore.getMetadata());
+                            newOres.add(String.format("%s.%d", ore.getItem().getRegistryName().toString(), ore.getMetadata()));
+                        }
+                    }
+                }
+            }
+            IC2AdditionsConfig.blocksToMine = newOres.toArray(new String[0]);
+        }
+        for (String s : IC2AdditionsConfig.blocksToMine) {
+            try {
+                String[] arr = s.split("\\.");
+                if (arr.length != 2) continue;
+
+                String id = arr[0];
+                String meta = arr[1];
+
+                Item item = Item.getByNameOrId(id);
+                if (item == null) throw new IllegalArgumentException("Not found in registry");
+
+                VALID_ORES.put(item, Integer.valueOf(meta));
+            } catch (Exception err) {
+                IC2Additions.logger.warn("Failed to register miner ore '{}'. Error: {}", s, err.getMessage());
+            }
+
+        }
+
+    }
+
     @SubscribeEvent
     public static void addItems(RegistryEvent.Register<Item> event) {
         IForgeRegistry<Item> registry = event.getRegistry();
 
-        registerItem("miner_1", new ItemBlock(IC2Additions.Blocks.miner_1), registry);
-        registerItem("miner_2", new ItemBlock(IC2Additions.Blocks.miner_2), registry);
-        registerItem("miner_3", new ItemBlock(IC2Additions.Blocks.miner_3), registry);
-        registerItem("miner_4", new ItemBlock(IC2Additions.Blocks.miner_4), registry);
-        registerItem("miner_5", new ItemBlock(IC2Additions.Blocks.miner_5), registry);
+        registerItem("miner_1", new ItemMiner(IC2Additions.Blocks.miner_1, IC2AdditionsConfig.miner_1), registry);
+        registerItem("miner_2", new ItemMiner(IC2Additions.Blocks.miner_2, IC2AdditionsConfig.miner_1), registry);
+        registerItem("miner_3", new ItemMiner(IC2Additions.Blocks.miner_3, IC2AdditionsConfig.miner_1), registry);
+        registerItem("miner_4", new ItemMiner(IC2Additions.Blocks.miner_4, IC2AdditionsConfig.miner_1), registry);
+        registerItem("miner_5", new ItemMiner(IC2Additions.Blocks.miner_5, IC2AdditionsConfig.miner_1), registry);
     }
 
     private static void registerItem(String name, Item item, IForgeRegistry<Item> registry) {

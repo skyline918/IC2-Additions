@@ -12,7 +12,8 @@ import java.awt.*;
 
 public class GuiMiner extends GuiContainer {
     private static final ResourceLocation TEXTURE = new ResourceLocation(IC2Additions.MOD_ID,"textures/gui/miner.png");
-//    private static final int FONT_COLOR = new Color(128,128,255).getRGB();
+    private static final int FONT_COLOR = new Color(120,255,255).getRGB();
+    private static final int FONT_COLOR_STATUS = new Color(160,255,255).getRGB();
 
     public static final int id = 1005;
     private final TileEntityMiner miner;
@@ -23,17 +24,27 @@ public class GuiMiner extends GuiContainer {
         this.miner = miner;
     }
 
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
+    {
+        this.drawDefaultBackground();
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        this.renderHoveredToolTip(mouseX, mouseY);
+    }
+
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
-        int FONT_COLOR = new Color(120,255,255).getRGB();
 
         fontRenderer.drawString(String.format("Miner T%d", miner.ic2EnergySink.getSinkTier()), 8, 6, 4210752);
-        fontRenderer.drawString(String.format("%d/%d EU",
-                Math.round(miner.ic2EnergySink.getEnergyStored()),
-                Math.round(miner.ic2EnergySink.getCapacity())
+        fontRenderer.drawString(String.format("%dk/%dk EU",
+                Math.round(miner.ic2EnergySink.getEnergyStored() / 1000),
+                Math.round(miner.ic2EnergySink.getCapacity() / 1000)
         ), 10, 20, FONT_COLOR);
         fontRenderer.drawString(String.format("IC2 Tier: %d", miner.ic2EnergySink.getSinkTier()), 10, 30, FONT_COLOR);
         fontRenderer.drawString(String.format("Owner: %s", miner.ownerName), 10, 40, FONT_COLOR);
+        fontRenderer.drawString(String.format("Height: %d (%d)", miner.cursorY, miner.getPos().getY() + miner.cursorY), 10, 50, FONT_COLOR);
+        fontRenderer.drawString(String.format("Scanned: %d", miner.totalScanned), 10, 60, FONT_COLOR);
+        fontRenderer.drawString(String.format("Mined: %d", miner.totalMined), 10, 70, FONT_COLOR);
+        fontRenderer.drawString(String.format("Status: %s", miner.status.toLocalizedString()), 10, 113, FONT_COLOR_STATUS);
 
     }
 

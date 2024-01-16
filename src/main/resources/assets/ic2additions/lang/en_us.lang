@@ -12,4 +12,12 @@ tile.miner_3.name=Miner III
 tile.miner_4.name=Miner IV
 tile.miner_5.name=Miner V
 
+tile.miner.status.disabled_config=Disabled (Config)
+tile.miner.status.in_progress=Working...
+tile.miner.status.no_energy=No Energy
+tile.miner.status.finished=Finished
+tile.miner.status.inventory_is_full=Slots are full
+
 message.forbidden.miner-owned-by-other-player=This miner is owned by '%s'
+item.miner.tooltip=Mines ores below. Works even if chunks are unloaded by calculating time deltas. Better to be supplied with energy before unloading.
+item.miner.tooltip-radius=Radius: %d
