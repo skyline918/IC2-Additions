@@ -12,7 +12,9 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
+import ru.starshineproject.config.IC2AdditionsConfig;
 import ru.starshineproject.gui.GuiHandler;
+import ru.starshineproject.tile.TileEntityMiner;
 
 import javax.annotation.Nonnull;
 
@@ -50,7 +52,7 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-
+        TileEntityMiner.ores = IC2AdditionsConfig.buildOreMap();
     }
 
     @Mod.EventHandler

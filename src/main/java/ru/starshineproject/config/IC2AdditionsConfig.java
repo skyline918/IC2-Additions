@@ -1,8 +1,11 @@
 package ru.starshineproject.config;
 
+import net.minecraft.item.Item;
 import net.minecraftforge.common.config.Config;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 @Config(modid = "ic2additions", name = "IC2 Additions")
 public class IC2AdditionsConfig {
@@ -15,6 +18,19 @@ public class IC2AdditionsConfig {
     public static Miner miner_3 = new Miner(3);
     public static Miner miner_4 = new Miner(4);
     public static Miner miner_5 = new Miner(5);
+    public static String minedOres =
+            "\n\t\tminecraft:gold_ore;" +
+            "\n\t\tminecraft:iron_ore;" +
+            "\n\t\tminecraft:coal_ore;" +
+            "\n\t\tminecraft:lapis_ore;" +
+            "\n\t\tminecraft:diamond_ore;" +
+            "\n\t\tminecraft:redstone_ore;" +
+            "\n\t\tminecraft:emerald_ore;" +
+            "\n\t\tminecraft:quartz_ore;" +
+            "\n\t\tminecraft:ic2:blockmetal@0;"+
+            "\n\t\tminecraft:ic2:blockmetal@1;"+
+            "\n\t\tminecraft:ic2:blockmetal@2;"+
+            "\n\t\tminecraft:ic2:blockmetal@3;";
 
     public static class Miner {
 
@@ -93,6 +109,24 @@ public class IC2AdditionsConfig {
                     ", energyToBlock=" + energyToBlock +
                     '}';
         }
+    }
+
+    public static HashMap<Item,ArrayList<Integer>> buildOreMap(){
+        HashMap<Item,ArrayList<Integer>> map = new HashMap<>();
+
+        String[] ores = minedOres.replace("\n","").replace("\t","").split(";");
+        for (String ore : ores) {
+            String[] par = ore.split("@");
+            Item item = Item.getByNameOrId(par[0]);
+            map.putIfAbsent(item, new ArrayList<>());
+            if (par.length == 2) {
+                map.get(item).add(Integer.valueOf(par[1]));
+                continue;
+            }
+            map.get(item).add(0);
+        }
+
+        return map;
     }
 
     public static Miner getMinerConfig(int tier){

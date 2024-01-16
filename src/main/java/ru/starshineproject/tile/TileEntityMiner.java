@@ -1,8 +1,12 @@
 package ru.starshineproject.tile;
 
 import ic2.api.energy.prefab.BasicSink;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.Item;
@@ -21,12 +25,14 @@ import ru.starshineproject.container.ContainerMiner;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.UUID;
 
 public class TileEntityMiner extends TileEntityLockableLoot implements ITickable {
 
+    public static HashMap<Item, ArrayList<Integer>> ores = new HashMap<>();
     public static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-
     public NonNullList<ItemStack> inventory;
     public BasicSink ic2EnergySink;
     public IC2AdditionsConfig.Miner config;
@@ -124,12 +130,14 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
             }
             //Check inventory status after mining
             if(status == Status.FULL_INVENTORY){
-                if(isInventoryFull()){
-
+                if(isInventoryFull())
                     break;
-                }
+                if(canInsertToInventory(getCursorItem()) == inventory.size())
+                    break;
             }
-            shiftPos();
+            //SHIFT ONLY IF IN PROCESS!!!!
+            if(status == Status.IN_PROGRESS)
+                shiftPos();
             if(!isChangedCursorValid()){
                 status = Status.FINISHED;
                 break;
@@ -137,9 +145,21 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
             status = Status.IN_PROGRESS;
             ic2EnergySink.useEnergy(config.energyToBlock);
             iterationNumber++;
-            this.world.setBlockToAir(cursor); //TODO DEBUG, REMOVE IT ON RELEASE
 
-            //TODO Scan
+            ItemStack mined = getCursorItem();
+            int slotIdToPush = canInsertToInventory(mined);
+            if(slotIdToPush == inventory.size()){
+                status = Status.FULL_INVENTORY;
+                break;
+            }
+
+            if(slotIdToPush != -1){
+                mine();
+                insertToInventory(mined, slotIdToPush);
+            }
+            else {
+                testMine();
+            }
 
             deltaTicks -= config.ticksForEachBlock;
             if(iterationNumber >= IC2AdditionsConfig.maxIterationPerTick){
@@ -149,20 +169,62 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         lastActiveSecond = updateSec - deltaTicks/20;
     }
 
+    //Return slot id for push item. -1 = not push. inventory size = full
+    private int canInsertToInventory(@Nullable ItemStack itemStack){
+        if (itemStack == null)
+            return -1;
+        for (int id = 0; id < inventory.size(); id++) {
+            if(inventory.get(id).isEmpty())
+                return id;
+            if(inventory.get(id).getItem() != itemStack.getItem())
+                continue;
+            if(inventory.get(id).getCount() + itemStack.getCount() <= getInventoryStackLimit())
+                return id;
+        }
+        return inventory.size();
+    }
+
+    private void insertToInventory(ItemStack itemStack, int slotId){
+        if(itemStack==null)
+            return;
+        ItemStack invStack = inventory.get(slotId);
+        if(invStack.getItem() == itemStack.getItem()){
+            inventory.get(slotId).grow(itemStack.getCount());
+            return;
+        }
+        inventory.set(slotId,itemStack);
+    }
+
+    private @Nullable ItemStack getCursorItem(){
+        IBlockState state = world.getBlockState(cursor);
+        Block block = state.getBlock();
+
+        if(block instanceof BlockLiquid) return null;
+        if(block.hasTileEntity(state)) return null;
+
+        ItemStack stack = block.getItem(world,cursor,state);
+        if(stack == ItemStack.EMPTY) return null;
+
+        ArrayList<Integer> metas = ores.getOrDefault(stack.getItem(), null);
+        if(metas == null) return null;
+        if(!metas.contains(stack.getMetadata())) return null;
+
+        return stack;
+    }
+
+    private void mine(){
+        world.setBlockState(cursor, Blocks.COBBLESTONE.getDefaultState());
+    }
+
+    private void testMine(){
+        world.setBlockToAir(cursor);
+    }
+
     private boolean isInventoryFull(){
         for (ItemStack stack: inventory)
             if(stack.isEmpty() || stack.getCount() < getInventoryStackLimit())
                 return false;
         return true;
-    }
-
-    private Item getCursorBlockItem(){
-        isChangedCursorValid();
-        return Item.getItemFromBlock(world.getBlockState(cursor).getBlock());
-    }
-
-    private boolean isOre(Item item){
-        return false;
     }
 
     private void shiftPos() {
