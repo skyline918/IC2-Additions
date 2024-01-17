@@ -146,4 +146,10 @@ public class BlockMiner extends Block implements IWrenchable {
         return Collections.singletonList(new ItemStack(item));
     }
 
+    @Override
+    public boolean canPlaceBlockAt(World worldIn, BlockPos pos) {
+        if(!IC2AConfig.AVAILABLE_DIMS.contains(worldIn.provider.getDimension()))
+            return false;
+        return super.canPlaceBlockAt(worldIn, pos);
+    }
 }

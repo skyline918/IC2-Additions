@@ -1,10 +1,13 @@
 package ru.starshineproject.config;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,9 +31,11 @@ public class IC2AConfig {
     public static final Miner MINER_4 = new Miner(4).setDefault(true,4,1000000,32,5,64);
     public static final Miner MINER_5 = new Miner(5).setDefault(true,5,1000000,40,2,128);
     public static final HashMap<Item, Set<Integer>> MINED_ORES = new HashMap<>();
+    public static final HashSet<Integer> AVAILABLE_DIMS = new HashSet<>();
 
     public void sync(){
         configuration.load();
+
         configuration.addCustomCategoryComment(CATEGORY_MAIN,"");
         ownershipEnabled = configuration.getBoolean("ownershipEnabled", CATEGORY_MAIN, true,"");
         maxIterationPerTick = configuration.getInt("maxIterationPerTick", CATEGORY_MAIN, 20,5,256,"");
@@ -42,6 +47,9 @@ public class IC2AConfig {
         MINER_5.init();
 
         applyMinedOres(configuration.getStringList("minedOres",CATEGORY_MAIN,DEFAULT_MINED_ORES_EXAMPLE,""));
+        String[] ids = configuration.getStringList("availableMinerDims", CATEGORY_MAIN, new String[]{"0", "1", "-1"},"Ids of the worlds in which the miner can be placed.");
+        Arrays.stream(ids).map(Integer::parseInt).forEach(AVAILABLE_DIMS::add);
+
         if(configuration.hasChanged())
             configuration.save();
     }
