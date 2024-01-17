@@ -1,5 +1,6 @@
 package ru.starshineproject.tile;
 
+import com.mojang.authlib.GameProfile;
 import ic2.api.energy.prefab.BasicSink;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
@@ -18,8 +19,13 @@ import net.minecraft.tileentity.TileEntityLockableLoot;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.GameType;
+import net.minecraft.world.WorldServer;
+import net.minecraft.world.border.WorldBorder;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.util.FakePlayer;
 import ru.starshineproject.IC2Additions;
-import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.config.IC2AConfig;
 import ru.starshineproject.container.ContainerMiner;
 
 import javax.annotation.Nonnull;
@@ -27,15 +33,15 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 public class TileEntityMiner extends TileEntityLockableLoot implements ITickable {
-
-    public static HashMap<Item, ArrayList<Integer>> ores = new HashMap<>();
     public static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+    private FakePlayer breaker = null;
     public NonNullList<ItemStack> inventory;
     public BasicSink ic2EnergySink;
-    public IC2AdditionsConfig.Miner config;
+    public IC2AConfig.Miner config;
     @Nullable public UUID ownerUUID;
     @Nullable public String ownerName;
     public TileEntityMiner.Status status;
@@ -85,21 +91,21 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
 
     @SuppressWarnings("unused") // default constructor for minecraft internals
     public TileEntityMiner() {
-        this.ic2EnergySink = new BasicSink(this, IC2AdditionsConfig.miner_1.capacity, IC2AdditionsConfig.miner_1.tier);
-        this.config = IC2AdditionsConfig.miner_1;
+        this.ic2EnergySink = new BasicSink(this, IC2AConfig.MINER_1.capacity, IC2AConfig.MINER_1.tier);
+        this.config = IC2AConfig.MINER_1;
         this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
         this.status = Status.DISABLED_CONFIG;
     }
 
-    public TileEntityMiner(IC2AdditionsConfig.Miner config) {
+    public TileEntityMiner(IC2AConfig.Miner config) {
         this.ic2EnergySink = new BasicSink(this, config.capacity, config.tier);
         this.config = config;
         this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
-        this.status = config.enabled ? Status.NO_ENERGY : Status.DISABLED_CONFIG;
+        this.status = config.enabled ? Status.IN_PROGRESS : Status.DISABLED_CONFIG;
     }
 
     public boolean canBeUsedBy(EntityPlayer player) {
-        if (!IC2AdditionsConfig.ownershipEnabled) return true;
+        if (!IC2AConfig.ownershipEnabled) return true;
         if (this.ownerUUID == null) return true;
         return this.ownerUUID.equals(player.getUniqueID());
     }
@@ -138,6 +144,8 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
             //SHIFT ONLY IF IN PROCESS!!!!
             if(status == Status.IN_PROGRESS)
                 shiftPos();
+            if(isCursorOutOfWorld())
+                continue;
             if(!isChangedCursorValid()){
                 status = Status.FINISHED;
                 break;
@@ -145,24 +153,19 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
             status = Status.IN_PROGRESS;
             ic2EnergySink.useEnergy(config.energyToBlock);
             iterationNumber++;
-
             ItemStack mined = getCursorItem();
             int slotIdToPush = canInsertToInventory(mined);
             if(slotIdToPush == inventory.size()){
                 status = Status.FULL_INVENTORY;
                 break;
             }
-
             if(slotIdToPush != -1){
-                mine();
-                insertToInventory(mined, slotIdToPush);
-            }
-            else {
-                testMine();
+                if(mine())
+                    insertToInventory(mined, slotIdToPush);
             }
 
             deltaTicks -= config.ticksForEachBlock;
-            if(iterationNumber >= IC2AdditionsConfig.maxIterationPerTick){
+            if(iterationNumber >= IC2AConfig.maxIterationPerTick){
                 break;
             }
         }
@@ -174,11 +177,14 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         if (itemStack == null)
             return -1;
         for (int id = 0; id < inventory.size(); id++) {
-            if(inventory.get(id).isEmpty())
+            ItemStack invStack = inventory.get(id);
+            if(invStack.isEmpty())
                 return id;
-            if(inventory.get(id).getItem() != itemStack.getItem())
+            if(invStack.getItem() != itemStack.getItem())
                 continue;
-            if(inventory.get(id).getCount() + itemStack.getCount() <= getInventoryStackLimit())
+            if(invStack.getMetadata() != itemStack.getMetadata())
+                continue;
+            if(invStack.getCount() + itemStack.getCount() <= getInventoryStackLimit())
                 return id;
         }
         return inventory.size();
@@ -205,19 +211,22 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         ItemStack stack = block.getItem(world,cursor,state);
         if(stack == ItemStack.EMPTY) return null;
 
-        ArrayList<Integer> metas = ores.getOrDefault(stack.getItem(), null);
+        Set<Integer> metas = IC2AConfig.MINED_ORES.getOrDefault(stack.getItem(), null);
         if(metas == null) return null;
         if(!metas.contains(stack.getMetadata())) return null;
 
         return stack;
     }
 
-    private void mine(){
-        world.setBlockState(cursor, Blocks.COBBLESTONE.getDefaultState());
-    }
-
-    private void testMine(){
-        world.setBlockToAir(cursor);
+    private boolean mine(){
+        if(IC2AConfig.ownershipEnabled && breaker == null){
+            status = Status.FINISHED;
+            return false;
+        }
+        int expDrop =  ForgeHooks.onBlockBreakEvent(this.world, GameType.CREATIVE, breaker, cursor);
+        if(expDrop == -1)
+            return false;
+        return true;
     }
 
     private boolean isInventoryFull(){
@@ -243,6 +252,15 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         }
     }
 
+    private boolean isCursorOutOfWorld(){
+        WorldBorder border = world.getWorldBorder();
+        int bmx = (int) (border.getCenterX()-border.getDiameter()/2);
+        int bMx = (int) (border.getCenterX()+border.getDiameter()/2);
+        int bmz = (int) (border.getCenterZ()-border.getDiameter()/2);
+        int bMz = (int) (border.getCenterZ()+border.getDiameter()/2);
+        return cursor.getX() < bmx || cursor.getX() > bMx || cursor.getZ() < bmz || cursor.getZ() > bMz;
+    }
+
     private boolean isChangedCursorValid(){
         cursor.setPos(this.pos.getX() + cursorX,this.pos.getY() + cursorY,this.pos.getZ() + cursorZ);
         return cursor.getY() > 0;
@@ -251,7 +269,6 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     private boolean moveCursorToStartIfInvalid() {
         int radius = config.radius;
         if (cursorX < -radius || cursorX > radius || cursorZ < -radius || cursorZ > radius || cursorY >= 0) {
-            IC2Additions.logger.info("mctsii {} {} {}", cursorX, cursorY, cursorZ);
             setCursorToStart();
             return true;
         }
@@ -286,7 +303,8 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         //req data
         ownerUUID = tag.hasUniqueId("ownerUUID") ? tag.getUniqueId("ownerUUID") : null;
         ownerName = tag.hasKey("ownerName") ? tag.getString("ownerName") : null;
-        config = IC2AdditionsConfig.getMinerConfig(tag.getByte("minerTier"));
+        initBreaker();
+        config = IC2AConfig.getMinerByTier(tag.getByte("minerTier"));
         //energy
         ic2EnergySink.readFromNBT(tag);
         ic2EnergySink.setCapacity(config.capacity);
@@ -336,7 +354,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public void handleUpdateTag(@Nonnull NBTTagCompound tag) {
         super.handleUpdateTag(tag);
         this.ownerName = tag.hasKey("ownerName") ? tag.getString("ownerName") : null;
-        this.config = IC2AdditionsConfig.getMinerConfig(tag.getByte("minerTier"));
+        this.config = IC2AConfig.getMinerByTier(tag.getByte("minerTier"));
     }
 
     /**
@@ -395,6 +413,12 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public void setOwner(EntityPlayer placer) {
         this.ownerName = placer.getName();
         this.ownerUUID = placer.getUniqueID();
+        initBreaker();
         this.markDirty();
+    }
+
+    private void initBreaker(){
+        if(ownerName == null || ownerUUID == null) return;
+        this.breaker = new FakePlayer((WorldServer) this.world, new GameProfile(ownerUUID,ownerName));
     }
 }

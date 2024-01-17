@@ -4,6 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -12,11 +13,12 @@ import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
-import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.config.IC2AConfig;
 import ru.starshineproject.gui.GuiHandler;
 import ru.starshineproject.tile.TileEntityMiner;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 
 
 @Mod(
@@ -32,6 +34,7 @@ public class IC2Additions {
 
     @Mod.Instance
     public static IC2Additions instance;
+    public static IC2AConfig config = new IC2AConfig(new File(Loader.instance().getConfigDir(), "IC2_Additions.cfg"));
     public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(MOD_ID) {
         @Override
         public @Nonnull ItemStack createIcon() {
@@ -41,6 +44,7 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        config.sync();
         logger = event.getModLog();
     }
 
@@ -52,7 +56,7 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        TileEntityMiner.ores = IC2AdditionsConfig.buildOreMap();
+        config.sync();
     }
 
     @Mod.EventHandler

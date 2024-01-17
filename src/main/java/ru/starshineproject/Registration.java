@@ -12,7 +12,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
-import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.config.IC2AConfig;
 import ru.starshineproject.tile.TileEntityMiner;
 
 @Mod.EventBusSubscriber
@@ -21,11 +21,11 @@ public class Registration {
     @SubscribeEvent
     public static void addBlocks(RegistryEvent.Register<Block> event) {
         IForgeRegistry<Block> registry = event.getRegistry();
-        registerBlock("miner_1", new BlockMiner(IC2AdditionsConfig.miner_1), registry);
-        registerBlock("miner_2", new BlockMiner(IC2AdditionsConfig.miner_2), registry);
-        registerBlock("miner_3", new BlockMiner(IC2AdditionsConfig.miner_3), registry);
-        registerBlock("miner_4", new BlockMiner(IC2AdditionsConfig.miner_4), registry);
-        registerBlock("miner_5", new BlockMiner(IC2AdditionsConfig.miner_5), registry);
+        registerBlock("miner_1", new BlockMiner(IC2AConfig.MINER_1), registry);
+        registerBlock("miner_2", new BlockMiner(IC2AConfig.MINER_2), registry);
+        registerBlock("miner_3", new BlockMiner(IC2AConfig.MINER_3), registry);
+        registerBlock("miner_4", new BlockMiner(IC2AConfig.MINER_4), registry);
+        registerBlock("miner_5", new BlockMiner(IC2AConfig.MINER_5), registry);
 
         GameRegistry.registerTileEntity(TileEntityMiner.class, new ResourceLocation(IC2Additions.MOD_ID, "miner"));
 

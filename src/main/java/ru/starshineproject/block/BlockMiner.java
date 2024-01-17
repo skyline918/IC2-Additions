@@ -20,7 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
 import ru.starshineproject.IC2Additions;
-import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.config.IC2AConfig;
 import ru.starshineproject.gui.GuiMiner;
 import ru.starshineproject.tile.TileEntityMiner;
 
@@ -35,14 +35,14 @@ public class BlockMiner extends Block implements IWrenchable {
     public static final PropertyDirection FACING = BlockHorizontal.FACING;
     public static final PropertyBool WORKING = PropertyBool.create("working");
 
-    IC2AdditionsConfig.Miner config;
+    IC2AConfig.Miner config;
 
     @Override
     protected @Nonnull BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, WORKING, FACING);
     }
 
-    public BlockMiner(IC2AdditionsConfig.Miner config) {
+    public BlockMiner(IC2AConfig.Miner config) {
         super(Material.IRON);
         this.setDefaultState(getBlockState().getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(WORKING, false));
         this.config = config;
@@ -125,7 +125,7 @@ public class BlockMiner extends Block implements IWrenchable {
 
     @Override
     public boolean wrenchCanRemove(World world, BlockPos pos, EntityPlayer player) {
-        if (IC2AdditionsConfig.ownershipEnabled) return true;
+        if (IC2AConfig.ownershipEnabled) return true;
 
         TileEntity tile = world.getTileEntity(pos);
         if (!(tile instanceof TileEntityMiner)) return true;

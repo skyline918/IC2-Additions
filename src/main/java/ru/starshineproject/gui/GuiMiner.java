@@ -4,6 +4,8 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextComponentTranslation;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.container.ContainerMiner;
 import ru.starshineproject.tile.TileEntityMiner;
@@ -34,7 +36,7 @@ public class GuiMiner extends GuiContainer {
         ), 10, 20, FONT_COLOR);
         fontRenderer.drawString(String.format("IC2 Tier: %d", miner.ic2EnergySink.getSinkTier()), 10, 30, FONT_COLOR);
         fontRenderer.drawString(String.format("Owner: %s", miner.ownerName), 10, 40, FONT_COLOR);
-        fontRenderer.drawString(String.format("Status: %s", miner.status), 10, 50, FONT_COLOR);
+        fontRenderer.drawString(String.format("Status: %s", new TextComponentTranslation(miner.status.langKey)), 10, 50, FONT_COLOR);
 
     }
 
