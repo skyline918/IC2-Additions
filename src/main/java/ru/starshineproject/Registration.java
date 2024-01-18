@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.oredict.OreDictionary;
 import ru.starshineproject.block.BlockMiner;
@@ -113,9 +114,11 @@ public class Registration {
                 .setCreativeTab(IC2Additions.CREATIVE_TAB)
         );
 
-        //noinspection ConstantConditions
-        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName().toString()));
-    }
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            //noinspection ConstantConditions
+            ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName().toString()));
+        }
+        }
 
     private static void registerBlock(String name, Block block, IForgeRegistry<Block> registry) {
         registry.register(block.setTranslationKey(name).setRegistryName(IC2Additions.MOD_ID, name).setCreativeTab(IC2Additions.CREATIVE_TAB));

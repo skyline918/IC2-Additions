@@ -5,7 +5,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import ru.starshineproject.container.ContainerMiner;
 import ru.starshineproject.tile.TileEntityMiner;
@@ -31,15 +30,9 @@ public class GuiHandler implements IGuiHandler {
     @Nullable
     @Override
     public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        pos.setPos(x,y,z);
         TileEntity tile = world.getTileEntity(pos);
         if (!(tile instanceof IInventory)) return null;
-
-        if (FMLCommonHandler.instance().getEffectiveSide().isServer()) {
-            switch (ID) {
-                case GuiMiner.id: return tile instanceof TileEntityMiner ? new ContainerMiner(player.inventory, (TileEntityMiner) tile) : null;
-            }
-            return null;
-        }
 
         switch (ID) {
             case GuiMiner.id: return tile instanceof TileEntityMiner ? new GuiMiner(player.inventory, (TileEntityMiner) tile) : null;
