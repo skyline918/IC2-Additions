@@ -1,10 +1,12 @@
 package ru.starshineproject;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockColored;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -13,6 +15,7 @@ import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
 import ru.starshineproject.gui.GuiHandler;
+import ru.starshineproject.proxy.CommonProxy;
 
 import javax.annotation.Nonnull;
 
@@ -27,9 +30,11 @@ public class IC2Additions {
     public static final String MOD_NAME = "IC2 Additions";
     public static final String VERSION = "1.0";
     public static Logger logger;
-
     @Mod.Instance
     public static IC2Additions instance;
+    @SidedProxy(serverSide = "ru.starshineproject.proxy.CommonProxy", clientSide = "ru.starshineproject.proxy.ClientProxy")
+    public static CommonProxy proxy;
+
     public static final CreativeTabs CREATIVE_TAB = new CreativeTabs(MOD_ID) {
         @Override
         public @Nonnull ItemStack createIcon() {
@@ -40,17 +45,19 @@ public class IC2Additions {
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         logger = event.getModLog();
+        proxy.preInit();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         NetworkRegistry.INSTANCE.registerGuiHandler(IC2Additions.instance, new GuiHandler());
+        proxy.init();
 
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-
+        proxy.postInit();
     }
 
     @Mod.EventHandler
@@ -66,6 +73,7 @@ public class IC2Additions {
         public static final Item miner_3 = ObjectHolder();
         public static final Item miner_4 = ObjectHolder();
         public static final Item miner_5 = ObjectHolder();
+        public static final Block pure_glass = ObjectHolder();
     }
 
     @GameRegistry.ObjectHolder(MOD_ID)
@@ -75,6 +83,7 @@ public class IC2Additions {
         public static final Block miner_3 = ObjectHolder();
         public static final Block miner_4 = ObjectHolder();
         public static final Block miner_5 = ObjectHolder();
+        public static final Block pure_glass = ObjectHolder();
     }
 
     @Nonnull
