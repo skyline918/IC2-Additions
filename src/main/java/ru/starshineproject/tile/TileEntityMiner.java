@@ -10,10 +10,12 @@ import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ItemStackHelper;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.EnumPacketDirection;
+import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityLockableLoot;
 import net.minecraft.util.ITickable;
@@ -24,6 +26,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.border.WorldBorder;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.config.IC2AConfig;
 import ru.starshineproject.container.ContainerMiner;
@@ -31,19 +34,17 @@ import ru.starshineproject.container.ContainerMiner;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
 public class TileEntityMiner extends TileEntityLockableLoot implements ITickable {
     public static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-    private FakePlayer breaker = null;
     public NonNullList<ItemStack> inventory;
     public BasicSink ic2EnergySink;
     public IC2AConfig.Miner config;
     @Nullable public UUID ownerUUID;
     @Nullable public String ownerName;
+    @Nullable public FakePlayer breaker = null;
     public TileEntityMiner.Status status;
     public int ticks;
     public int cursorX = 0;
@@ -52,39 +53,47 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public long lastActiveSecond = Instant.now().getEpochSecond();
 
     public enum Status {
-        DISABLED_CONFIG("miner.status.disabled_config"),
+        DISABLED_CONFIG("miner.status.disabled_config", true),
+        DISABLED_DIM("miner.status.disabled_config_dim", true),
         IN_PROGRESS("miner.status.in_progress"),
         NO_ENERGY("miner.status.no_energy"),
-        FINISHED("miner.status.finished"),
-        FULL_INVENTORY("miner.status.no_empty_slot");
+        FINISHED("miner.status.finished", true),
+        FULL_INVENTORY("miner.status.no_empty_slot"),
+        NULL("miner.status.null");
 
         public final String langKey;
+        public final boolean shutdown;
 
         Status(String langKey) {
             this.langKey = langKey;
+            this.shutdown = false;
+        }
+
+        Status(String langKey, boolean shutdown) {
+            this.langKey = langKey;
+            this.shutdown = shutdown;
         }
 
         public static Status fromByte(byte b) {
             switch (b) {
-                case 1: return IN_PROGRESS;
-                case 2: return NO_ENERGY;
-                case 3: return FINISHED;
-                case 4: return FULL_INVENTORY;
-                default: return DISABLED_CONFIG;
+                case 0:     return DISABLED_CONFIG;
+                case 1:     return DISABLED_DIM;
+                case 2:     return IN_PROGRESS;
+                case 3:     return NO_ENERGY;
+                case 4:     return FINISHED;
+                case 5:     return FULL_INVENTORY;
+                default:    return NULL;
             }
         }
         public byte toByte() {
             switch (this) {
-                case IN_PROGRESS:
-                    return 1;
-                case NO_ENERGY:
-                    return 2;
-                case FINISHED:
-                    return 3;
-                case FULL_INVENTORY:
-                    return 4;
-                default:
-                    return 0;
+                case DISABLED_CONFIG:   return 0;
+                case DISABLED_DIM:      return 1;
+                case IN_PROGRESS:       return 2;
+                case NO_ENERGY:         return 3;
+                case FINISHED:          return 4;
+                case FULL_INVENTORY:    return 5;
+                default:                return 15;
             }
         }
     }
@@ -94,14 +103,14 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         this.ic2EnergySink = new BasicSink(this, IC2AConfig.MINER_1.capacity, IC2AConfig.MINER_1.tier);
         this.config = IC2AConfig.MINER_1;
         this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
-        this.status = Status.DISABLED_CONFIG;
+        this.status = Status.NULL;
     }
 
     public TileEntityMiner(IC2AConfig.Miner config) {
         this.ic2EnergySink = new BasicSink(this, config.capacity, config.tier);
         this.config = config;
         this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
-        this.status = config.enabled ? Status.IN_PROGRESS : Status.DISABLED_CONFIG;
+        this.status = config.enabled ? Status.NULL : Status.DISABLED_CONFIG;
     }
 
     public boolean canBeUsedBy(EntityPlayer player) {
@@ -120,10 +129,20 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         if(world.isRemote) return;
         ticks++;
         if (ticks % 5 != 0) return;
-        if (!this.config.enabled) return;
-        if(status == Status.FINISHED) return;
-        if(!ic2EnergySink.canUseEnergy(config.energyToBlock)) return; //Status NO_ENERGY
-        if(isInventoryFull()) return;
+        if(status.shutdown) return;
+
+        if (!this.config.enabled){
+            status = Status.DISABLED_CONFIG;
+            return;
+        }
+
+        if(!IC2AConfig.AVAILABLE_DIMS.contains(world.provider.getDimension())){
+            status = Status.DISABLED_DIM;
+            return;
+        }
+
+        if(!ic2EnergySink.canUseEnergy(config.energyToBlock)) return;   //Status NO_ENERGY
+        if(isInventoryFull()) return;                                   //Status FULL INVENTORY
 
         long updateSec = Instant.now().getEpochSecond();
         int deltaTicks = Math.toIntExact(updateSec-lastActiveSecond) * 20;
@@ -141,16 +160,16 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
                 if(canInsertToInventory(getCursorItem()) == inventory.size())
                     break;
             }
+
             //SHIFT ONLY IF IN PROCESS!!!!
-            if(status == Status.IN_PROGRESS)
-                shiftPos();
+            status = Status.IN_PROGRESS;
+            shiftPos();
             if(isCursorOutOfWorld())
                 continue;
-            if(!isChangedCursorValid()){
+            if(!isCursorInFinish()){
                 status = Status.FINISHED;
                 break;
             }
-            status = Status.IN_PROGRESS;
             ic2EnergySink.useEnergy(config.energyToBlock);
             iterationNumber++;
             ItemStack mined = getCursorItem();
@@ -160,8 +179,10 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
                 break;
             }
             if(slotIdToPush != -1){
-                if(mine())
+                if(canMine()){
+                    mine();
                     insertToInventory(mined, slotIdToPush);
+                }
             }
 
             deltaTicks -= config.ticksForEachBlock;
@@ -201,6 +222,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         inventory.set(slotId,itemStack);
     }
 
+    @SuppressWarnings("deprecation")
     private @Nullable ItemStack getCursorItem(){
         IBlockState state = world.getBlockState(cursor);
         Block block = state.getBlock();
@@ -218,15 +240,22 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         return stack;
     }
 
-    private boolean mine(){
-        if(IC2AConfig.ownershipEnabled && breaker == null){
-            status = Status.FINISHED;
+    private boolean canMine(){
+        if(!IC2AConfig.ownershipEnabled)
+            return true;
+        if(breaker == null)
             return false;
-        }
-        int expDrop =  ForgeHooks.onBlockBreakEvent(this.world, GameType.CREATIVE, breaker, cursor);
+        int expDrop =  ForgeHooks.onBlockBreakEvent(this.world, GameType.SURVIVAL, breaker, cursor);
         if(expDrop == -1)
             return false;
         return true;
+    }
+
+    private void mine(){
+        IBlockState state = world.getBlockState(cursor);
+        if(breaker != null)
+            state.getBlock().onBlockHarvested(world, cursor, state, breaker);
+        world.setBlockState(cursor, Blocks.COBBLESTONE.getDefaultState());
     }
 
     private boolean isInventoryFull(){
@@ -261,7 +290,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         return cursor.getX() < bmx || cursor.getX() > bMx || cursor.getZ() < bmz || cursor.getZ() > bMz;
     }
 
-    private boolean isChangedCursorValid(){
+    private boolean isCursorInFinish(){
         cursor.setPos(this.pos.getX() + cursorX,this.pos.getY() + cursorY,this.pos.getZ() + cursorZ);
         return cursor.getY() > 0;
     }
@@ -284,6 +313,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     @Override
     public void onLoad() {
         ic2EnergySink.onLoad();
+        initBreaker();
     }
 
     @Override
@@ -303,8 +333,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         //req data
         ownerUUID = tag.hasUniqueId("ownerUUID") ? tag.getUniqueId("ownerUUID") : null;
         ownerName = tag.hasKey("ownerName") ? tag.getString("ownerName") : null;
-        initBreaker();
-        config = IC2AConfig.getMinerByTier(tag.getByte("minerTier"));
+        config = IC2AConfig.getMinerByNumber(tag.getByte("minerTier"));
         //energy
         ic2EnergySink.readFromNBT(tag);
         ic2EnergySink.setCapacity(config.capacity);
@@ -354,7 +383,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public void handleUpdateTag(@Nonnull NBTTagCompound tag) {
         super.handleUpdateTag(tag);
         this.ownerName = tag.hasKey("ownerName") ? tag.getString("ownerName") : null;
-        this.config = IC2AConfig.getMinerByTier(tag.getByte("minerTier"));
+        this.config = IC2AConfig.getMinerByNumber(tag.getByte("minerTier"));
     }
 
     /**
@@ -365,7 +394,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public SPacketUpdateTileEntity getUpdatePacket() {
         NBTTagCompound tag = new NBTTagCompound();
         ic2EnergySink.writeToNBT(tag);
-         tag.setByte("mineStatus", status.toByte());
+        tag.setByte("mineStatus", status.toByte());
         return new SPacketUpdateTileEntity(pos, 1, tag);
     }
 
@@ -374,6 +403,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         ic2EnergySink.readFromNBT(pkt.getNbtCompound());
         status = Status.fromByte(pkt.getNbtCompound().getByte("mineStatus"));
     }
+
 
     @Override
     public int getSizeInventory() {
@@ -413,12 +443,17 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public void setOwner(EntityPlayer placer) {
         this.ownerName = placer.getName();
         this.ownerUUID = placer.getUniqueID();
-        initBreaker();
+        if(!world.isRemote) initBreaker();
         this.markDirty();
     }
 
     private void initBreaker(){
         if(ownerName == null || ownerUUID == null) return;
-        this.breaker = new FakePlayer((WorldServer) this.world, new GameProfile(ownerUUID,ownerName));
+        breaker = new FakePlayer((WorldServer) world,new GameProfile(ownerUUID,ownerName));
+        breaker.connection = new NetHandlerPlayServer(FMLCommonHandler.instance().getMinecraftServerInstance(), new NetworkManager(EnumPacketDirection.SERVERBOUND), breaker) {
+            @Override public void sendPacket(@Nonnull Packet packetIn) {}
+            @Override public void update() {}
+        };
     }
+
 }

@@ -1,9 +1,6 @@
 package ru.starshineproject.config;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.common.config.Configuration;
 
 import java.io.File;
@@ -69,8 +66,8 @@ public class IC2AConfig {
         }
     }
 
-    public static Miner getMinerByTier(int tier){
-        switch (tier){
+    public static Miner getMinerByNumber(int num){
+        switch (num){
             case 2: return MINER_2;
             case 3: return MINER_3;
             case 4: return MINER_4;
