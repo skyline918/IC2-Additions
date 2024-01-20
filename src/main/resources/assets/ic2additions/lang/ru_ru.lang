@@ -1,5 +1,6 @@
 itemGroup.ic2additions=IC2 Additions
 
+#Шахтер
 item.miner_1.name=Шахтер I
 item.miner_2.name=Шахтер II
 item.miner_3.name=Шахтер III
@@ -11,3 +12,45 @@ tile.miner_2.name=Шахтер II
 tile.miner_3.name=Шахтер III
 tile.miner_4.name=Шахтер IV
 tile.miner_5.name=Шахтер V
+
+tile.miner.status.disabled_config=Отключен в конфиге
+tile.miner.status.in_progress=В работе...
+tile.miner.status.no_energy=Недостаточно энергии
+tile.miner.status.finished=Работа окончена
+tile.miner.status.inventory_is_full=Инвентарь переполнен
+
+gui.miner.tier=Шахтер T%d
+gui.miner.sinkTier=Уровень сети: %d
+gui.miner.owner=Владелец: %s
+gui.miner.height=Высота: %d (%d)
+gui.miner.scanned=Просканировано: %d
+gui.miner.mined=Добыто: %d
+gui.miner.status=Статус: %s
+
+message.forbidden.miner-owned-by-other-player=Шахтер игрока '%s'
+item.miner.tooltip=Добывает руду под собой. Работает даже в незагруженных чанках считая разницу во времени. Максимально зарядите перед тем как уйти.
+item.miner.tooltip-radius=Радиус: %d
+
+#Большой танкер
+tile.pure_glass.black.name=Черное чистое стекло
+tile.pure_glass.red.name=Красное чистое стекло
+tile.pure_glass.green.name=Зеленое чистое стекло
+tile.pure_glass.brown.name=Коричневое чистое стекло
+tile.pure_glass.blue.name=Синее чистое стекло
+tile.pure_glass.purple.name=Фиолетовое чистое стекло
+tile.pure_glass.cyan.name=Бирюзовое чистое стекло
+tile.pure_glass.silver.name=Светло-серое чистое стекло
+tile.pure_glass.gray.name=Серое чистое стекло
+tile.pure_glass.pink.name=Розовое
+tile.pure_glass.lime.name=Лаймовое чистое стекло
+tile.pure_glass.yellow.name=Желтое чистое стекло
+tile.pure_glass.lightBlue.name=Голубое
+tile.pure_glass.magenta.name=Пурпурное чистое стекло
+tile.pure_glass.orange.name=Оранжевое чистое стекло
+tile.pure_glass.white.name=Белое чистое стекло
+
+tile.tank_casing.steel.name=Стальная обшивка танкер
+tile.tank_casing.aluminium.name=Алюминиевая обшивка танкер
+tile.tank_casing.stainless_steel.name=Обшивка танкера из нержавеющей стали
+tile.tank_casing.titan.name=Титановая обшивка танкер
+tile.tank_casing.tungsten_steel.name=Обшивка танкера из вольфрамовой стали

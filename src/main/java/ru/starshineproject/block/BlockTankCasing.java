@@ -17,7 +17,7 @@ import net.minecraft.world.IBlockAccess;
 
 import javax.annotation.Nullable;
 
-public class BlockTankCasing extends Block {
+public class BlockTankCasing extends Block implements IPropertyValueName{
     public static final IItemColor CASING_ITEM_COLOR = ((stack, tintIndex) -> Casing.getAsMeta(stack.getItemDamage()).getColor());
     public static final IBlockColor CASING_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> Casing.getAsMeta(state.getBlock().getMetaFromState(state)).getColor());
 
@@ -47,6 +47,11 @@ public class BlockTankCasing extends Block {
     @Override
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, TYPE);
+    }
+
+    @Override
+    public String getValueName(ItemStack stack) {
+        return Casing.getAsMeta(stack.getMetadata()).getName();
     }
 
     public enum Casing implements IStringSerializable {

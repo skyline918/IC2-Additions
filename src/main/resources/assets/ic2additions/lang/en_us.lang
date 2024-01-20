@@ -1,10 +1,11 @@
 itemGroup.ic2additions=IC2 Additions
 
-item.miner_1.name=Miner I"
-item.miner_2.name=Miner II"
-item.miner_3.name=Miner III"
-item.miner_4.name=Miner IV"
-item.miner_5.name=Miner V"
+# Miner
+item.miner_1.name=Miner I
+item.miner_2.name=Miner II
+item.miner_3.name=Miner III
+item.miner_4.name=Miner IV
+item.miner_5.name=Miner V
 
 tile.miner_1.name=Miner I
 tile.miner_2.name=Miner II
@@ -18,6 +19,38 @@ tile.miner.status.no_energy=No Energy
 tile.miner.status.finished=Finished
 tile.miner.status.inventory_is_full=Slots are full
 
+gui.miner.tier=Miner T%d
+gui.miner.sinkTier=IC2 Tier: %d
+gui.miner.owner=Owner: %s
+gui.miner.height=Height: %d (%d)
+gui.miner.scanned=Scanned: %d
+gui.miner.mined=Mined: %d
+gui.miner.status=Status: %s
+
 message.forbidden.miner-owned-by-other-player=This miner is owned by '%s'
 item.miner.tooltip=Mines ores below. Works even if chunks are unloaded by calculating time deltas. Better to be supplied with energy before unloading.
 item.miner.tooltip-radius=Radius: %d
+
+#Tanker
+tile.pure_glass.black.name=Black Pure Glass
+tile.pure_glass.red.name=Red Pure Glass
+tile.pure_glass.green.name=Green Pure Glass
+tile.pure_glass.brown.name=Brown Pure Glass
+tile.pure_glass.blue.name=Blue Pure Glass
+tile.pure_glass.purple.name=Purple Pure Glass
+tile.pure_glass.cyan.name=Cyan Pure Glass
+tile.pure_glass.silver.name=Light Gray Pure Glass
+tile.pure_glass.gray.name=Gray Pure Glass
+tile.pure_glass.pink.name=Pink Pure Glass
+tile.pure_glass.lime.name=Lime Pure Glass
+tile.pure_glass.yellow.name=Yellow Pure Glass
+tile.pure_glass.lightBlue.name=Light Blue Pure Glass
+tile.pure_glass.magenta.name=Magenta Pure Glass
+tile.pure_glass.orange.name=Orange Pure Glass
+tile.pure_glass.white.name=White Pure Glass
+
+tile.tank_casing.steel.name=Steel Tanker Plating
+tile.tank_casing.aluminium.name=Aluminium Tanker Plating
+tile.tank_casing.stainless_steel.name=Stainless Steel Tanker Plating
+tile.tank_casing.titan.name=Titan Tanker Plating
+tile.tank_casing.tungsten_steel.name=Tungsten Steel Tanker Plating

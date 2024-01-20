@@ -85,7 +85,7 @@ public class BlockMiner extends Block implements IWrenchable {
         TileEntityMiner miner = (TileEntityMiner) tile;
 
         if (!miner.canBeUsedBy(player)) {
-            notifyInteractionForbidden(player);
+            notifyInteractionForbidden(player, miner.ownerName);
             return true;
         }
 
@@ -132,12 +132,12 @@ public class BlockMiner extends Block implements IWrenchable {
         TileEntityMiner miner = ((TileEntityMiner) tile);
 
         boolean allowed = miner.canBeUsedBy(player);
-        if (!allowed) notifyInteractionForbidden(player);
+        if (!allowed) notifyInteractionForbidden(player, miner.ownerName);
         return allowed;
     }
 
-    private void notifyInteractionForbidden(EntityPlayer player) {
-        player.sendMessage(new TextComponentTranslation("message.forbidden.miner-owned-by-other-player"));
+    private void notifyInteractionForbidden(EntityPlayer player, String ownerName) {
+        player.sendMessage(new TextComponentTranslation("message.forbidden.miner-owned-by-other-player", ownerName));
     }
 
     @Override

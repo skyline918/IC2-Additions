@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
 
-public class BlockPureGlass extends Block {
+public class BlockPureGlass extends Block implements IPropertyValueName {
     public static final IItemColor PURE_GLASS_ITEM_COLOR = ((stack, tintIndex) -> EnumDyeColor.byMetadata(stack.getItemDamage()).getColorValue());
     public static final IBlockColor PURE_GLASS_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> EnumDyeColor.byMetadata(state.getBlock().getMetaFromState(state)).getColorValue());
     public static final PropertyEnum<EnumDyeColor> COLOR = PropertyEnum.create("color", EnumDyeColor.class);
@@ -120,5 +120,10 @@ public class BlockPureGlass extends Block {
         if (block == this) return false;
 
         return super.shouldSideBeRendered(blockState, blockAccess, pos, side);
+    }
+
+    @Override
+    public String getValueName(ItemStack stack) {
+        return EnumDyeColor.byMetadata(stack.getMetadata()).getTranslationKey();
     }
 }
