@@ -45,20 +45,18 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        proxy.preInit();
         logger = event.getModLog();
+        proxy.preInit();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         proxy.init();
-        NetworkRegistry.INSTANCE.registerGuiHandler(IC2Additions.instance, new GuiHandler());
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit();
-        Registration.discoverOres();
     }
 
     @Mod.EventHandler

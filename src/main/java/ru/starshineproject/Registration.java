@@ -134,6 +134,7 @@ public class Registration {
                 .setRegistryName(IC2Additions.MOD_ID, name)
                 .setCreativeTab(IC2Additions.CREATIVE_TAB);
         registry.register(itemBlock);
+
         if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
             ModelResourceLocation mrl = new ModelResourceLocation(itemBlock.getRegistryName().toString());
 
@@ -150,11 +151,9 @@ public class Registration {
                 .setCreativeTab(IC2Additions.CREATIVE_TAB)
         );
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
-            //noinspection ConstantConditions
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient())
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName().toString()));
-        }
-        }
+    }
 
     private static void registerBlock(String name, Block block, IForgeRegistry<Block> registry) {
         registry.register(block.setTranslationKey(name).setRegistryName(IC2Additions.MOD_ID, name).setCreativeTab(IC2Additions.CREATIVE_TAB));
