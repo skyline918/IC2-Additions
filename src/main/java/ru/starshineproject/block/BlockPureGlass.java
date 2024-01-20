@@ -1,17 +1,12 @@
 package ru.starshineproject.block;
 
-import mcp.MethodsReturnNonnullByDefault;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.color.IBlockColor;
-import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.BlockRenderLayer;
@@ -23,13 +18,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
 
 public class BlockPureGlass extends Block implements IPropertyValueName {
-    public static final IItemColor PURE_GLASS_ITEM_COLOR = ((stack, tintIndex) -> EnumDyeColor.byMetadata(stack.getItemDamage()).getColorValue());
-    public static final IBlockColor PURE_GLASS_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> EnumDyeColor.byMetadata(state.getBlock().getMetaFromState(state)).getColorValue());
+
     public static final PropertyEnum<EnumDyeColor> COLOR = PropertyEnum.create("color", EnumDyeColor.class);
     public BlockPureGlass(){
         super(Material.GLASS);
@@ -39,7 +32,7 @@ public class BlockPureGlass extends Block implements IPropertyValueName {
     @Override
     public int damageDropped(IBlockState state)
     {
-        return ((EnumDyeColor)state.getValue(COLOR)).getMetadata();
+        return state.getValue(COLOR).getMetadata();
     }
 
     @Override
@@ -52,16 +45,16 @@ public class BlockPureGlass extends Block implements IPropertyValueName {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    @ParametersAreNonnullByDefault
-    public MapColor getMapColor(IBlockState state, IBlockAccess worldIn, BlockPos pos)
+    public @Nonnull MapColor getMapColor(IBlockState state, @Nonnull IBlockAccess worldIn, @Nonnull BlockPos pos)
     {
-        return MapColor.getBlockColor((EnumDyeColor)state.getValue(COLOR));
+        return MapColor.getBlockColor(state.getValue(COLOR));
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public BlockRenderLayer getRenderLayer()
+    public @Nonnull BlockRenderLayer getRenderLayer()
     {
         return BlockRenderLayer.TRANSLUCENT;
     }
@@ -73,21 +66,23 @@ public class BlockPureGlass extends Block implements IPropertyValueName {
         return 0;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected boolean canSilkHarvest()
     {
         return true;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    @ParametersAreNonnullByDefault
-    public boolean isFullCube(IBlockState state)
+    public boolean isFullCube(@Nonnull IBlockState state)
     {
         return false;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public IBlockState getStateFromMeta(int meta)
+    public @Nonnull IBlockState getStateFromMeta(int meta)
     {
         return this.getDefaultState().withProperty(COLOR, EnumDyeColor.byMetadata(meta));
     }
@@ -95,23 +90,24 @@ public class BlockPureGlass extends Block implements IPropertyValueName {
     @Override
     public int getMetaFromState(IBlockState state)
     {
-        return ((EnumDyeColor)state.getValue(COLOR)).getMetadata();
+        return (state.getValue(COLOR)).getMetadata();
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public boolean isOpaqueCube(IBlockState state)
+    public boolean isOpaqueCube(@Nonnull IBlockState state)
     {
         return false;
     }
     @Override
-    @MethodsReturnNonnullByDefault
-    protected BlockStateContainer createBlockState()
+    protected @Nonnull BlockStateContainer createBlockState()
     {
         return new BlockStateContainer(this, COLOR);
     }
 
+    @SuppressWarnings("deprecation")
     @SideOnly(Side.CLIENT)
-    public boolean shouldSideBeRendered(IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, EnumFacing side)
+    public boolean shouldSideBeRendered(@Nonnull IBlockState blockState, IBlockAccess blockAccess, BlockPos pos, @Nonnull EnumFacing side)
     {
         IBlockState iblockstate = blockAccess.getBlockState(pos.offset(side));
         Block block = iblockstate.getBlock();

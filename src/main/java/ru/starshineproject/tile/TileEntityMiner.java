@@ -74,7 +74,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         DISABLED_CONFIG("tile.miner.status.disabled_config", new Color(255, 100, 100).getRGB()),
         IN_PROGRESS("tile.miner.status.in_progress", new Color(150, 200, 255).getRGB()),
         NO_ENERGY("tile.miner.status.no_energy", new Color(255, 100, 100).getRGB()),
-        FINISHED("tile.miner.status.finished", new Color(255, 100, 100).getRGB()),
+        FINISHED("tile.miner.status.finished", new Color(100, 255, 100).getRGB()),
         INVENTORY_IS_FULL("tile.miner.status.inventory_is_full", new Color(255, 100, 100).getRGB()),
         BLACKLIST_DIMENSION("tile.miner.status.blacklist-dim", new Color(255, 100, 100).getRGB());
 

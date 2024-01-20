@@ -5,22 +5,15 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.color.IBlockColor;
-import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 public class BlockTankCasing extends Block implements IPropertyValueName{
-    public static final IItemColor CASING_ITEM_COLOR = ((stack, tintIndex) -> Casing.getAsMeta(stack.getItemDamage()).getColor());
-    public static final IBlockColor CASING_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> Casing.getAsMeta(state.getBlock().getMetaFromState(state)).getColor());
 
     public static final PropertyEnum<Casing> TYPE = PropertyEnum.create("type",Casing.class);
     public BlockTankCasing(){

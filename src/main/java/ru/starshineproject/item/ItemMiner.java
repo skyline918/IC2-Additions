@@ -40,7 +40,7 @@ public class ItemMiner extends ItemBlock {
         if (langCache1 == null) {
             langCache1 = new TextComponentTranslation("item.miner.tooltip-radius", minerConfig.radius).getFormattedText();
         }
-        if (langCache3 == null && IC2AdditionsConfig.dimBlacklist.length > 0) {
+        if (langCache3 == null) {
             ArrayList<String> arr = new ArrayList<>(IC2AdditionsConfig.dimBlacklist.length);
             for (Integer integer : IC2AdditionsConfig.dimBlacklist) {
                 try {

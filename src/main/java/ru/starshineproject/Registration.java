@@ -1,34 +1,31 @@
 package ru.starshineproject;
 
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.renderer.block.statemap.IStateMapper;
-import net.minecraft.client.renderer.block.statemap.StateMapperBase;
-import net.minecraftforge.client.event.ModelRegistryEvent;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.config.Config;
-import net.minecraftforge.common.config.ConfigManager;
-import net.minecraftforge.fml.client.event.ConfigChangedEvent;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.oredict.OreDictionary;
-import ru.starshineproject.block.BlockMiner;
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.config.Config;
+import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.registries.IForgeRegistry;
+import ru.starshineproject.block.BlockMiner;
 import ru.starshineproject.block.BlockPureGlass;
 import ru.starshineproject.block.BlockTankCasing;
 import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
-import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.item.ItemMiner;
+import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.tile.TileEntityMiner;
 
 import java.util.ArrayList;
@@ -38,13 +35,6 @@ import static ru.starshineproject.tile.TileEntityMiner.VALID_ORES;
 
 @Mod.EventBusSubscriber
 public class Registration {
-
-    public static final IStateMapper normalStateMapper = new StateMapperBase() {
-        @Override
-        protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
-            return new ModelResourceLocation(Block.REGISTRY.getNameForObject(state.getBlock()), "normal");
-        }
-    };
 
     @SubscribeEvent
     public static void addBlocks(RegistryEvent.Register<Block> event) {
@@ -123,12 +113,6 @@ public class Registration {
         registerItem("miner_5", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_5), registry);
         registerBlockSubItem("pure_glass", IC2Additions.Blocks.pure_glass, registry);
         registerBlockSubItem("tank_casing", IC2Additions.Blocks.tank_casing, registry);
-    }
-
-    @SubscribeEvent
-    public static void registerStateMapper(ModelRegistryEvent event){
-        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.pure_glass, normalStateMapper);
-        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.tank_casing, normalStateMapper);
     }
 
     private static void registerBlockSubItem(String name, Block block, IForgeRegistry<Item> registry) {
