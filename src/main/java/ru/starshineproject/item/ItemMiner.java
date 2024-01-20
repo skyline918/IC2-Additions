@@ -2,10 +2,12 @@ package ru.starshineproject.item;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraft.world.World;
+import ru.starshineproject.block.BlockMiner;
 import ru.starshineproject.config.IC2AdditionsConfig;
 
 import javax.annotation.Nonnull;
@@ -21,6 +23,9 @@ public class ItemMiner extends ItemBlock {
     public ItemMiner(Block p_i45328_1_, @Nonnull IC2AdditionsConfig.Miner minerConfig) {
         super(p_i45328_1_);
         this.minerConfig = minerConfig;
+    }
+    public ItemMiner(BlockMiner miner){
+        this(miner,miner.getConfig());
     }
 
     @Override

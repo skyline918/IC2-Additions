@@ -1,5 +1,9 @@
 package ru.starshineproject;
 
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.renderer.block.statemap.IStateMapper;
+import net.minecraft.client.renderer.block.statemap.StateMapperBase;
+import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
@@ -19,8 +23,11 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
+import ru.starshineproject.block.BlockPureGlass;
+import ru.starshineproject.block.BlockTankCasing;
 import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.item.ItemMiner;
 import ru.starshineproject.tile.TileEntityMiner;
 
@@ -32,6 +39,13 @@ import static ru.starshineproject.tile.TileEntityMiner.VALID_ORES;
 @Mod.EventBusSubscriber
 public class Registration {
 
+    public static final IStateMapper normalStateMapper = new StateMapperBase() {
+        @Override
+        protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
+            return new ModelResourceLocation(Block.REGISTRY.getNameForObject(state.getBlock()), "normal");
+        }
+    };
+
     @SubscribeEvent
     public static void addBlocks(RegistryEvent.Register<Block> event) {
         IForgeRegistry<Block> registry = event.getRegistry();
@@ -40,6 +54,8 @@ public class Registration {
         registerBlock("miner_3", new BlockMiner(IC2AdditionsConfig.miner_3), registry);
         registerBlock("miner_4", new BlockMiner(IC2AdditionsConfig.miner_4), registry);
         registerBlock("miner_5", new BlockMiner(IC2AdditionsConfig.miner_5), registry);
+        registerBlock("pure_glass", new BlockPureGlass(), registry);
+        registerBlock("tank_casing", new BlockTankCasing(), registry);
 
         GameRegistry.registerTileEntity(TileEntityMiner.class, new ResourceLocation(IC2Additions.MOD_ID, "miner"));
 
@@ -97,14 +113,39 @@ public class Registration {
     }
 
     @SubscribeEvent
-    public static void addItems(RegistryEvent.Register<Item> event) {
+    public static void registerItems(RegistryEvent.Register<Item> event) {
         IForgeRegistry<Item> registry = event.getRegistry();
 
-        registerItem("miner_1", new ItemMiner(IC2Additions.Blocks.miner_1, IC2AdditionsConfig.miner_1), registry);
-        registerItem("miner_2", new ItemMiner(IC2Additions.Blocks.miner_2, IC2AdditionsConfig.miner_1), registry);
-        registerItem("miner_3", new ItemMiner(IC2Additions.Blocks.miner_3, IC2AdditionsConfig.miner_1), registry);
-        registerItem("miner_4", new ItemMiner(IC2Additions.Blocks.miner_4, IC2AdditionsConfig.miner_1), registry);
-        registerItem("miner_5", new ItemMiner(IC2Additions.Blocks.miner_5, IC2AdditionsConfig.miner_1), registry);
+        registerItem("miner_1", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_1), registry);
+        registerItem("miner_2", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_2), registry);
+        registerItem("miner_3", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_3), registry);
+        registerItem("miner_4", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_4), registry);
+        registerItem("miner_5", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_5), registry);
+        registerBlockSubItem("pure_glass", IC2Additions.Blocks.pure_glass, registry);
+        registerBlockSubItem("tank_casing", IC2Additions.Blocks.tank_casing, registry);
+    }
+
+    @SubscribeEvent
+    public static void registerStateMapper(ModelRegistryEvent event){
+        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.pure_glass, normalStateMapper);
+        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.tank_casing, normalStateMapper);
+    }
+
+    private static void registerBlockSubItem(String name, Block block, IForgeRegistry<Item> registry) {
+        MultiItemBlock itemBlock = new MultiItemBlock(block);
+        itemBlock
+                .setTranslationKey(name)
+                .setRegistryName(IC2Additions.MOD_ID, name)
+                .setCreativeTab(IC2Additions.CREATIVE_TAB);
+        registry.register(itemBlock);
+
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+            ModelResourceLocation mrl = new ModelResourceLocation(itemBlock.getRegistryName().toString());
+
+            for (IBlockState state : block.getBlockState().getValidStates()){
+                ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block),block.getMetaFromState(state),mrl);
+            }
+        }
     }
 
     private static void registerItem(String name, Item item, IForgeRegistry<Item> registry) {
@@ -114,11 +155,9 @@ public class Registration {
                 .setCreativeTab(IC2Additions.CREATIVE_TAB)
         );
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
-            //noinspection ConstantConditions
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient())
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName().toString()));
-        }
-        }
+    }
 
     private static void registerBlock(String name, Block block, IForgeRegistry<Block> registry) {
         registry.register(block.setTranslationKey(name).setRegistryName(IC2Additions.MOD_ID, name).setCreativeTab(IC2Additions.CREATIVE_TAB));

@@ -2,8 +2,10 @@ package ru.starshineproject.gui;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextComponentTranslation;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.container.ContainerMiner;
 import ru.starshineproject.tile.TileEntityMiner;
@@ -34,17 +36,17 @@ public class GuiMiner extends GuiContainer {
     @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 
-        fontRenderer.drawString(String.format("Miner T%d", miner.ic2EnergySink.getSinkTier()), 8, 6, 4210752);
+        fontRenderer.drawString(I18n.format("gui.miner.tier", miner.ic2EnergySink.getSinkTier()), 8, 6, 4210752);
         fontRenderer.drawString(String.format("%dk/%dk EU",
                 Math.round(miner.ic2EnergySink.getEnergyStored() / 1000),
                 Math.round(miner.ic2EnergySink.getCapacity() / 1000)
         ), 10, 20, FONT_COLOR);
-        fontRenderer.drawString(String.format("IC2 Tier: %d", miner.ic2EnergySink.getSinkTier()), 10, 30, FONT_COLOR);
-        fontRenderer.drawString(String.format("Owner: %s", miner.ownerName), 10, 40, FONT_COLOR);
-        fontRenderer.drawString(String.format("Height: %d (%d)", miner.cursorY, miner.getPos().getY() + miner.cursorY), 10, 50, FONT_COLOR);
-        fontRenderer.drawString(String.format("Scanned: %d", miner.totalScanned), 10, 60, FONT_COLOR);
-        fontRenderer.drawString(String.format("Mined: %d", miner.totalMined), 10, 70, FONT_COLOR);
-        fontRenderer.drawString(String.format("Status: %s", miner.status.toLocalizedString()), 10, 113, FONT_COLOR_STATUS);
+        fontRenderer.drawString(I18n.format("gui.miner.sinkTier", miner.ic2EnergySink.getSinkTier()), 10, 30, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.miner.owner", miner.ownerName), 10, 40, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.miner.height", miner.cursorY, miner.getPos().getY() + miner.cursorY), 10, 50, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.miner.scanned", miner.totalScanned), 10, 60, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.miner.mined", miner.totalMined), 10, 70, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.miner.status", miner.status.toLocalizedString()), 10, 113, FONT_COLOR_STATUS);
 
     }
 

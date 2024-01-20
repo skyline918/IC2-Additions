@@ -1,0 +1,22 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "uvlock": true,
+    "model": "ic2additions:tint_cube_all",
+    "textures": {
+      "all": "ic2additions:blocks/tank_casing_1",
+      "particle": "#all",
+      "up": "#all",
+      "down": "#all",
+      "north": "#all",
+      "south": "#all",
+      "west": "#all",
+      "east": "#all"
+    }
+  },
+  "variants": {
+    "normal": [
+      {}
+    ]
+  }
+}
