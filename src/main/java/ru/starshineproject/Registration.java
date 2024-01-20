@@ -24,6 +24,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import ru.starshineproject.block.BlockPureGlass;
+import ru.starshineproject.block.BlockTankCasing;
 import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
 import ru.starshineproject.item.MultiItemBlock;
@@ -54,6 +55,7 @@ public class Registration {
         registerBlock("miner_4", new BlockMiner(IC2AdditionsConfig.miner_4), registry);
         registerBlock("miner_5", new BlockMiner(IC2AdditionsConfig.miner_5), registry);
         registerBlock("pure_glass", new BlockPureGlass(), registry);
+        registerBlock("tank_casing", new BlockTankCasing(), registry);
 
         GameRegistry.registerTileEntity(TileEntityMiner.class, new ResourceLocation(IC2Additions.MOD_ID, "miner"));
 
@@ -114,17 +116,19 @@ public class Registration {
     public static void registerItems(RegistryEvent.Register<Item> event) {
         IForgeRegistry<Item> registry = event.getRegistry();
 
-        registerItem("miner_1", new ItemBlock(IC2Additions.Blocks.miner_1), registry);
-        registerItem("miner_2", new ItemBlock(IC2Additions.Blocks.miner_2), registry);
-        registerItem("miner_3", new ItemBlock(IC2Additions.Blocks.miner_3), registry);
-        registerItem("miner_4", new ItemBlock(IC2Additions.Blocks.miner_4), registry);
-        registerItem("miner_5", new ItemBlock(IC2Additions.Blocks.miner_5), registry);
+        registerItem("miner_1", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_1), registry);
+        registerItem("miner_2", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_2), registry);
+        registerItem("miner_3", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_3), registry);
+        registerItem("miner_4", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_4), registry);
+        registerItem("miner_5", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_5), registry);
         registerBlockSubItem("pure_glass", IC2Additions.Blocks.pure_glass, registry);
+        registerBlockSubItem("tank_casing", IC2Additions.Blocks.tank_casing, registry);
     }
 
     @SubscribeEvent
     public static void registerStateMapper(ModelRegistryEvent event){
         ModelLoader.setCustomStateMapper(IC2Additions.Blocks.pure_glass, normalStateMapper);
+        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.tank_casing, normalStateMapper);
     }
 
     private static void registerBlockSubItem(String name, Block block, IForgeRegistry<Item> registry) {

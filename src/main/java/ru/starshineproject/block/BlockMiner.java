@@ -146,4 +146,7 @@ public class BlockMiner extends Block implements IWrenchable {
         return Collections.singletonList(new ItemStack(item));
     }
 
+    public IC2AdditionsConfig.Miner getConfig() {
+        return config;
+    }
 }

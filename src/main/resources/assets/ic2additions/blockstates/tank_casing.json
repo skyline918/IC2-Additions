@@ -4,7 +4,7 @@
     "uvlock": true,
     "model": "ic2additions:tint_cube_all",
     "textures": {
-      "all": "ic2additions:blocks/pure_glass",
+      "all": "ic2additions:blocks/tank_casing",
       "particle": "#all",
       "up": "#all",
       "down": "#all",

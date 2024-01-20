@@ -72,7 +72,8 @@ public class IC2Additions {
         public static final Item miner_3 = ObjectHolder();
         public static final Item miner_4 = ObjectHolder();
         public static final Item miner_5 = ObjectHolder();
-        public static final Block pure_glass = ObjectHolder();
+        public static final Item pure_glass = ObjectHolder();
+        public static final Item tank_casing = ObjectHolder();
     }
 
     @GameRegistry.ObjectHolder(MOD_ID)
@@ -83,6 +84,7 @@ public class IC2Additions {
         public static final Block miner_4 = ObjectHolder();
         public static final Block miner_5 = ObjectHolder();
         public static final Block pure_glass = ObjectHolder();
+        public static final Block tank_casing = ObjectHolder();
     }
 
     @Nonnull
