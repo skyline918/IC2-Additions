@@ -8,14 +8,15 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.color.IBlockColor;
 import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 public class BlockTankCasing extends Block implements IPropertyValueName{
     public static final IItemColor CASING_ITEM_COLOR = ((stack, tintIndex) -> Casing.getAsMeta(stack.getItemDamage()).getColor());
@@ -26,8 +27,14 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
         super(Material.IRON);
         this.setDefaultState(getBlockState().getBaseState().withProperty(TYPE,Casing.STEEL));
     }
+    @Override
+    public int damageDropped(IBlockState state)
+    {
+        return state.getValue(TYPE).getMeta();
+    }
 
     @Override
+    @ParametersAreNonnullByDefault
     public void getSubBlocks(CreativeTabs itemIn, NonNullList<ItemStack> items) {
         for (Casing casing: Casing.values()) {
             items.add(new ItemStack(this,1,casing.getMeta()));
@@ -35,6 +42,8 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    @Nonnull
     public IBlockState getStateFromMeta(int meta) {
         return this.getDefaultState().withProperty(TYPE,Casing.getAsMeta(meta));
     }
@@ -45,6 +54,7 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
     }
 
     @Override
+    @Nonnull
     protected BlockStateContainer createBlockState() {
         return new BlockStateContainer(this, TYPE);
     }
@@ -87,6 +97,7 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
         }
 
         @Override
+        @Nonnull
         public String getName() {
             return this.name;
         }

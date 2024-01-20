@@ -20,7 +20,7 @@ tile.miner.status.finished=Работа окончена
 tile.miner.status.inventory_is_full=Инвентарь переполнен
 
 gui.miner.tier=Шахтер T%d
-gui.miner.sinkTier=Уровень сети: %d
+gui.miner.sinkTier=Уровень энерго сети: %d
 gui.miner.owner=Владелец: %s
 gui.miner.height=Высота: %d (%d)
 gui.miner.scanned=Просканировано: %d
