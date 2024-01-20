@@ -5,7 +5,6 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextComponentTranslation;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.container.ContainerMiner;
 import ru.starshineproject.tile.TileEntityMiner;
@@ -46,7 +45,8 @@ public class GuiMiner extends GuiContainer {
         fontRenderer.drawString(I18n.format("gui.miner.height", miner.cursorY, miner.getPos().getY() + miner.cursorY), 10, 50, FONT_COLOR);
         fontRenderer.drawString(I18n.format("gui.miner.scanned", miner.totalScanned), 10, 60, FONT_COLOR);
         fontRenderer.drawString(I18n.format("gui.miner.mined", miner.totalMined), 10, 70, FONT_COLOR);
-        fontRenderer.drawString(I18n.format("gui.miner.status", miner.status.toLocalizedString()), 10, 113, FONT_COLOR_STATUS);
+        fontRenderer.drawString(I18n.format("gui.miner.status"), 10, 103, FONT_COLOR_STATUS);
+        fontRenderer.drawString(miner.status.toLocalizedString(), 13, 113, miner.status.color);
 
     }
 

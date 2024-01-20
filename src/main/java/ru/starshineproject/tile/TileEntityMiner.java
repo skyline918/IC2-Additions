@@ -22,6 +22,7 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityLockableLoot;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -36,6 +37,7 @@ import ru.starshineproject.container.ContainerMiner;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.awt.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.UUID;
@@ -64,20 +66,25 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     private FakePlayer fakePlayer;
     public int totalMined;
     public int totalScanned;
+    private AxisAlignedBB rangeAABB;
+    private boolean readyForRender = false;
+    public boolean needToRender = false;
 
     public enum Status {
-        DISABLED_CONFIG("tile.miner.status.disabled_config"),
-        IN_PROGRESS("tile.miner.status.in_progress"),
-        NO_ENERGY("tile.miner.status.no_energy"),
-        FINISHED("tile.miner.status.finished"),
-        INVENTORY_IS_FULL("tile.miner.status.inventory_is_full"),
-        OUT_OF_THE_WORLD_BORDER("tile.miner.status.intersects_world_border");
+        DISABLED_CONFIG("tile.miner.status.disabled_config", new Color(255, 100, 100).getRGB()),
+        IN_PROGRESS("tile.miner.status.in_progress", new Color(150, 200, 255).getRGB()),
+        NO_ENERGY("tile.miner.status.no_energy", new Color(255, 100, 100).getRGB()),
+        FINISHED("tile.miner.status.finished", new Color(255, 100, 100).getRGB()),
+        INVENTORY_IS_FULL("tile.miner.status.inventory_is_full", new Color(255, 100, 100).getRGB()),
+        BLACKLIST_DIMENSION("tile.miner.status.blacklist-dim", new Color(255, 100, 100).getRGB());
 
         public final String langKey;
+        public final int color;
         public String langCache;
 
-        Status(String langKey) {
+        Status(String langKey, int color) {
             this.langKey = langKey;
+            this.color = color;
         }
 
         public String toLocalizedString() {
@@ -94,7 +101,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
                 case 2: return NO_ENERGY;
                 case 3: return FINISHED;
                 case 4: return INVENTORY_IS_FULL;
-                case 5: return OUT_OF_THE_WORLD_BORDER;
+                case 5: return BLACKLIST_DIMENSION;
                 default: return DISABLED_CONFIG;
             }
         }
@@ -110,7 +117,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
                     return 3;
                 case INVENTORY_IS_FULL:
                     return 4;
-                case OUT_OF_THE_WORLD_BORDER:
+                case BLACKLIST_DIMENSION:
                     return 5;
                 default:
                     return 0;
@@ -144,12 +151,42 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         return inventory;
     }
 
+
+    public @Nullable AxisAlignedBB getRangeAABB() {
+        if (!this.readyForRender) return null;
+        if (this.rangeAABB == null) {
+            this.rangeAABB = new AxisAlignedBB(
+                    this.pos.getX() - config.radius,
+                    this.pos.getY() - 1,
+                    this.pos.getZ() - config.radius,
+                    this.pos.getX() + config.radius,
+                    0,
+                    this.pos.getZ() + config.radius
+            );
+        }
+        return this.rangeAABB;
+    }
+
     @Override
     @ParametersAreNonnullByDefault
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
         if (oldState.getBlock() == newState.getBlock()) return false; // if state changed we do not recreate tile (from forge doc)
 
         return super.shouldRefresh(world, pos, oldState, newState);
+    }
+
+    @Override
+    public void setPos(@Nonnull BlockPos posIn) {
+        super.setPos(posIn);
+        this.readyForRender = true;
+    }
+
+    private boolean checkBlacklisted(World world) {
+        if (IC2AdditionsConfig.dimIsBlacklisted(world.provider.getDimension())) {
+            this.status = TileEntityMiner.Status.BLACKLIST_DIMENSION;
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -160,6 +197,9 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         if (!this.config.enabled) return;
         if (this.status == Status.FINISHED) return;
         if (!world.isAreaLoaded(pos, config.radius)) return;
+        if (this.status == Status.BLACKLIST_DIMENSION) return;
+        if (checkBlacklisted(world)) return;
+
         moveCursorToStartIfInvalid();
 
         int updates = 0;
@@ -290,7 +330,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
      * **/
     void mine(Block block, IBlockState state) {
         block.onBlockHarvested(world, cursor, state, fakePlayer);
-        world.setBlockState(cursor, Blocks.GLASS.getDefaultState(), 3);
+        world.setBlockState(cursor, Blocks.COBBLESTONE.getDefaultState(), 3);
     }
 
     protected void initFakePlayer() {
@@ -375,7 +415,8 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     @Override
     public void readFromNBT(@Nonnull NBTTagCompound tag) {
         super.readFromNBT(tag);
-        config = IC2AdditionsConfig.getConfigFromTier(tag.getShort("minerTier"));
+        this.readyForRender = true;
+        config = IC2AdditionsConfig.getConfigFromLevel(tag.getShort("minerLevel"));
         ic2EnergySink.readFromNBT(tag);
         ic2EnergySink.setSinkTier(config.tier);
         ic2EnergySink.setCapacity(config.capacity);
@@ -406,7 +447,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         tag.setInteger("cursorY", cursorY);
         tag.setInteger("cursorZ", cursorZ);
         tag.setLong("lastUpdated", lastUpdated);
-        tag.setShort("minerTier", (short) config.tier);
+        tag.setShort("minerLevel", (short) config.level);
         tag.setInteger("totalMined", totalMined);
         tag.setInteger("totalScanned", totalScanned);
 
@@ -420,7 +461,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public @Nonnull NBTTagCompound getUpdateTag() {
         NBTTagCompound tag = super.getUpdateTag();
         ic2EnergySink.writeToNBT(tag);
-        tag.setShort("minerTier", (short) config.tier);
+        tag.setShort("minerLevel", (short) config.level);
         if (this.ownerName != null) tag.setString("ownerName", this.ownerName);
         return tag;
     }
@@ -428,14 +469,15 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     @Override
     public void handleUpdateTag(@Nonnull NBTTagCompound tag) {
         super.handleUpdateTag(tag);
-        this.config = IC2AdditionsConfig.getConfigFromTier(tag.getShort("minerTier"));
+        this.readyForRender = true; // for client rendering
+        this.config = IC2AdditionsConfig.getConfigFromLevel(tag.getShort("minerLevel"));
         this.ic2EnergySink.setCapacity(config.capacity);
         this.ic2EnergySink.setSinkTier(config.tier);
         this.ownerName = tag.hasKey("ownerName") ? tag.getString("ownerName") : DEFAULT_NAME;
     }
 
     /**
-     * Called in container sync (every tick if player see GUI)
+     * Called in container sync
      * **/
     @Nullable
     @Override

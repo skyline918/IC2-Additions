@@ -8,12 +8,8 @@ public class IC2AdditionsConfig {
 
     public static boolean ownershipEnabled = false;
 
-    public static String[] blocksToMine = new String[3];
-    static {
-        blocksToMine[0] = "minecraft:iron_ore";
-        blocksToMine[1] = "minecraft:gold_ore";
-        blocksToMine[2] = "minecraft:diamond_ore";
-    }
+    public static Integer[] dimBlacklist = new Integer[0];
+    public static String[] blocksToMine = new String[0];
 
     public static Miner miner_1 = new Miner(1);
     public static Miner miner_2 = new Miner(2);
@@ -21,7 +17,7 @@ public class IC2AdditionsConfig {
     public static Miner miner_4 = new Miner(4);
     public static Miner miner_5 = new Miner(5);
 
-    public static Miner getConfigFromTier(int tier) {
+    public static Miner getConfigFromLevel(int tier) {
         switch (tier) {
             case 2: return miner_2;
             case 3: return miner_3;
@@ -31,11 +27,24 @@ public class IC2AdditionsConfig {
         }
     }
 
+    public static boolean dimIsBlacklisted(int dim) {
+        for (int i = 0; i < IC2AdditionsConfig.dimBlacklist.length; i++) {
+            if (IC2AdditionsConfig.dimBlacklist[i] == dim) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static class Miner {
 
-        public Miner(int defaultTier) {
-            initDefaultByTier(defaultTier);
+        public Miner(int defaultLevel) {
+            initDefaultByLevel(defaultLevel);
         }
+
+        @Config.Ignore
+        public int level;
 
         @Config.Comment("Whether the miner is enabled. It does not affect game registry. Existing miners will just stop")
         public boolean enabled = true;
@@ -67,8 +76,9 @@ public class IC2AdditionsConfig {
         @Config.RangeInt(min = 1, max = 360000)
         public int maxScansPerUpdate = 50;
 
-        private void initDefaultByTier(int tier) {
-            switch (tier) {
+        private void initDefaultByLevel(int level) {
+            this.level = level;
+            switch (level) {
                 default:
                     this.tier = 1;
                     this.capacity = 80000;

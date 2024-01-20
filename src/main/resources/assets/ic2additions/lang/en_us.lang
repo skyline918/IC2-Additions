@@ -18,6 +18,7 @@ tile.miner.status.in_progress=Working...
 tile.miner.status.no_energy=No Energy
 tile.miner.status.finished=Finished
 tile.miner.status.inventory_is_full=Slots are full
+tile.miner.status.blacklist-dim=Dim blacklist!
 
 gui.miner.tier=Miner T%d
 gui.miner.sinkTier=IC2 Tier: %d
@@ -25,11 +26,12 @@ gui.miner.owner=Owner: %s
 gui.miner.height=Height: %d (%d)
 gui.miner.scanned=Scanned: %d
 gui.miner.mined=Mined: %d
-gui.miner.status=Status: %s
+gui.miner.status=Status:
 
 message.forbidden.miner-owned-by-other-player=This miner is owned by '%s'
 item.miner.tooltip=Mines ores below. Works even if chunks are unloaded by calculating time deltas. Better to be supplied with energy before unloading.
 item.miner.tooltip-radius=Radius: %d
+item.miner.tooltip-blacklisted-dims=Disabled in worlds: %s
 
 #Tanker
 tile.pure_glass.black.name=Black Pure Glass

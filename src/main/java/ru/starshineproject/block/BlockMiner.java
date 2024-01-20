@@ -10,6 +10,8 @@ import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -44,6 +46,7 @@ public class BlockMiner extends Block implements IWrenchable {
 
     public BlockMiner(IC2AdditionsConfig.Miner config) {
         super(Material.IRON);
+        this.setHardness(20.0F);
         this.setDefaultState(getBlockState().getBaseState().withProperty(FACING, EnumFacing.NORTH).withProperty(WORKING, false));
         this.config = config;
     }
@@ -79,7 +82,20 @@ public class BlockMiner extends Block implements IWrenchable {
     @Override
     @ParametersAreNonnullByDefault
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if (world.isRemote) return true;
+        if (world.isRemote) {
+            TileEntity tile = world.getTileEntity(pos);
+            if (!(tile instanceof TileEntityMiner)) return true;
+            TileEntityMiner miner = (TileEntityMiner) tile;
+
+            if (player.isSneaking()) {
+                miner.needToRender = !miner.needToRender;
+                return true;
+            }
+            return true;
+        }
+
+        if (player.isSneaking()) return true;
+
         TileEntity tile = world.getTileEntity(pos);
         if (!(tile instanceof TileEntityMiner)) return true;
         TileEntityMiner miner = (TileEntityMiner) tile;
@@ -88,6 +104,7 @@ public class BlockMiner extends Block implements IWrenchable {
             notifyInteractionForbidden(player, miner.ownerName);
             return true;
         }
+
 
         player.openGui(IC2Additions.instance, GuiMiner.id, world, pos.getX(), pos.getY(), pos.getZ());
         return true;
@@ -148,5 +165,16 @@ public class BlockMiner extends Block implements IWrenchable {
 
     public IC2AdditionsConfig.Miner getConfig() {
         return config;
+    }
+
+    public void breakBlock(World worldIn, @Nonnull BlockPos pos, @Nonnull IBlockState state)
+    {
+        TileEntity tileentity = worldIn.getTileEntity(pos);
+        if (tileentity instanceof IInventory)
+        {
+            InventoryHelper.dropInventoryItems(worldIn, pos, (IInventory) tileentity);
+            worldIn.updateComparatorOutputLevel(pos, this);
+        }
+        super.breakBlock(worldIn, pos, state);
     }
 }

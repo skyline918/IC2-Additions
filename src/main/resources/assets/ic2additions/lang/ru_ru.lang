@@ -1,6 +1,6 @@
 itemGroup.ic2additions=IC2 Additions
 
-#Шахтер
+# Шахтер
 item.miner_1.name=Шахтер I
 item.miner_2.name=Шахтер II
 item.miner_3.name=Шахтер III
@@ -13,11 +13,12 @@ tile.miner_3.name=Шахтер III
 tile.miner_4.name=Шахтер IV
 tile.miner_5.name=Шахтер V
 
-tile.miner.status.disabled_config=Отключен в конфиге
+tile.miner.status.disabled_config=Отключен (конфиг)
 tile.miner.status.in_progress=В работе...
-tile.miner.status.no_energy=Недостаточно энергии
-tile.miner.status.finished=Работа окончена
-tile.miner.status.inventory_is_full=Инвентарь переполнен
+tile.miner.status.no_energy=Нет энергии
+tile.miner.status.finished=Завершено
+tile.miner.status.inventory_is_full=Нет места
+tile.miner.status.blacklist-dim=Мир отключен
 
 gui.miner.tier=Шахтер T%d
 gui.miner.sinkTier=Уровень энерго сети: %d
@@ -25,11 +26,12 @@ gui.miner.owner=Владелец: %s
 gui.miner.height=Высота: %d (%d)
 gui.miner.scanned=Просканировано: %d
 gui.miner.mined=Добыто: %d
-gui.miner.status=Статус: %s
+gui.miner.status=Статус:
 
 message.forbidden.miner-owned-by-other-player=Шахтер игрока '%s'
 item.miner.tooltip=Добывает руду под собой. Работает даже в незагруженных чанках считая разницу во времени. Максимально зарядите перед тем как уйти.
 item.miner.tooltip-radius=Радиус: %d
+item.miner.tooltip-blacklisted-dims=Отключен в мирах: %s
 
 #Большой танкер
 tile.pure_glass.black.name=Черное чистое стекло
