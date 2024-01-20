@@ -30,6 +30,7 @@ public class IC2Additions {
     public static final String MOD_NAME = "IC2 Additions";
     public static final String VERSION = "1.0";
     public static Logger logger;
+
     @Mod.Instance
     public static IC2Additions instance;
     @SidedProxy(serverSide = "ru.starshineproject.proxy.CommonProxy", clientSide = "ru.starshineproject.proxy.ClientProxy")
@@ -44,25 +45,25 @@ public class IC2Additions {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        logger = event.getModLog();
         proxy.preInit();
+        logger = event.getModLog();
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
-        NetworkRegistry.INSTANCE.registerGuiHandler(IC2Additions.instance, new GuiHandler());
         proxy.init();
-
+        NetworkRegistry.INSTANCE.registerGuiHandler(IC2Additions.instance, new GuiHandler());
     }
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit();
+        Registration.discoverOres();
     }
 
     @Mod.EventHandler
     public void onServerStart(FMLServerStartingEvent event) {
-
+        Registration.registerCommands(event);
     }
 
     @SuppressWarnings("unused")
