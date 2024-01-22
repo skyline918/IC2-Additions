@@ -123,7 +123,7 @@ public class Registration {
                 .setCreativeTab(IC2Additions.CREATIVE_TAB);
         registry.register(itemBlock);
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient() && itemBlock.getRegistryName() != null) {
             ModelResourceLocation mrl = new ModelResourceLocation(itemBlock.getRegistryName().toString());
 
             for (IBlockState state : block.getBlockState().getValidStates()){
@@ -139,7 +139,7 @@ public class Registration {
                 .setCreativeTab(IC2Additions.CREATIVE_TAB)
         );
 
-        if (FMLCommonHandler.instance().getEffectiveSide().isClient())
+        if (FMLCommonHandler.instance().getEffectiveSide().isClient() && item.getRegistryName() != null)
             ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName().toString()));
     }
 

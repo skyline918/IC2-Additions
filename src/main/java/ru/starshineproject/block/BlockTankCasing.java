@@ -2,23 +2,31 @@ package ru.starshineproject.block;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class BlockTankCasing extends Block implements IPropertyValueName{
+import static ru.starshineproject.block.BlocksProperties.*;
 
-    public static final PropertyEnum<Casing> TYPE = PropertyEnum.create("type",Casing.class);
+public class BlockTankCasing extends Block implements IPropertyValueName{
     public BlockTankCasing(){
         super(Material.IRON);
-        this.setDefaultState(getBlockState().getBaseState().withProperty(TYPE,Casing.STEEL));
+        this.setDefaultState(getBlockState().getBaseState()
+                .withProperty(TYPE,Casing.STEEL)
+                .withProperty(NORTH, false)
+                .withProperty(EAST, false)
+                .withProperty(SOUTH, false)
+                .withProperty(WEST, false)
+                .withProperty(TOP, false)
+                .withProperty(BOTTOM, false)
+        );
     }
     @Override
     public int damageDropped(IBlockState state)
@@ -47,9 +55,65 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    @Nonnull
+    @ParametersAreNonnullByDefault
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        boolean[] connection = getConnections(worldIn, pos);
+        state = state.withProperty(NORTH, connection[0]);
+        state = state.withProperty(EAST, connection[1]);
+        state = state.withProperty(SOUTH, connection[2]);
+        state = state.withProperty(WEST, connection[3]);
+        state = state.withProperty(TOP, connection[4]);
+        state = state.withProperty(BOTTOM, connection[5]);
+        return state;
+    }
+
+    public boolean[] getConnections(IBlockAccess world, BlockPos pos){
+        boolean[] connections = new boolean[]{false,false,false,false,false,false};
+        BlockPos.MutableBlockPos neighborPos = new BlockPos.MutableBlockPos();
+        IBlockState neighborState;
+        IBlockState curBlockState = world.getBlockState(pos);
+        Casing casingType = curBlockState.getValue(TYPE);
+
+        //North
+        neighborPos.setPos(pos.getX(), pos.getY(), pos.getZ()-1);
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[0] = neighborState.getValue(TYPE) == casingType;
+
+        //EAST
+        neighborPos.setPos(pos.getX()+1, pos.getY(), pos.getZ());
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[1] = neighborState.getValue(TYPE) == casingType;
+
+        //SOUTH
+        neighborPos.setPos(pos.getX(), pos.getY(), pos.getZ()+1);
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[2] = neighborState.getValue(TYPE) == casingType;
+
+        //WEST
+        neighborPos.setPos(pos.getX()-1, pos.getY(), pos.getZ());
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[3] = neighborState.getValue(TYPE) == casingType;
+
+        //TOP
+        neighborPos.setPos(pos.getX(), pos.getY()+1, pos.getZ());
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[4] = neighborState.getValue(TYPE) == casingType;
+
+        //BOTTOM
+        neighborPos.setPos(pos.getX(), pos.getY()-1, pos.getZ());
+        if((neighborState = world.getBlockState(neighborPos)).getBlock() == this)
+            connections[5] = neighborState.getValue(TYPE) == casingType;
+
+
+        return connections;
+    }
+
+    @Override
     @Nonnull
     protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, TYPE);
+        return new BlockStateContainer(this, TYPE, NORTH, EAST, SOUTH, WEST, TOP, BOTTOM);
     }
 
     @Override
@@ -57,49 +121,5 @@ public class BlockTankCasing extends Block implements IPropertyValueName{
         return Casing.getAsMeta(stack.getMetadata()).getName();
     }
 
-    public enum Casing implements IStringSerializable {
-        STEEL("steel", 0, 0x394147),
-        ALUMINIUM("aluminium", 1, 0x74bec3),
-        STAINLESS_STEEL("stainless_steel", 2, 0xabccdc),
-        TITAN("titan", 3, 0xc892df),
-        TUNGSTEN_STEEL("tungsten_steel", 4, 0x443488);
 
-        public static final Casing[] CASINGS = new Casing[Casing.values().length];
-        public final String name;
-        public final int meta;
-        public final int color;
-
-        Casing(String name, int meta, int color) {
-            this.name = name;
-            this.meta = meta;
-            this.color = color;
-        }
-
-        public static Casing getAsMeta(int meta){
-            if(meta >= CASINGS.length || meta < 0)
-                return STEEL;
-            return CASINGS[meta];
-        }
-
-        public int getMeta() {
-            return meta;
-        }
-
-        public int getColor(){
-            return color;
-        }
-
-        @Override
-        @Nonnull
-        public String getName() {
-            return this.name;
-        }
-
-        //feel array
-        static {
-            for (Casing casing:Casing.values()) {
-                CASINGS[casing.meta] = casing;
-            }
-        }
-    }
 }

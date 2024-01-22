@@ -26,7 +26,7 @@ public class ClientEvents {
     @SubscribeEvent
     public static void registerStateMapper(ModelRegistryEvent event){
         ModelLoader.setCustomStateMapper(IC2Additions.Blocks.pure_glass, ClientProxy.normalStateMapper);
-        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.tank_casing, ClientProxy.normalStateMapper);
+        ModelLoader.setCustomStateMapper(IC2Additions.Blocks.tank_casing, ClientProxy.connectedStateMapper);
     }
 
     @SideOnly(Side.CLIENT)

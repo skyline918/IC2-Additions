@@ -12,22 +12,38 @@ import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import ru.starshineproject.IC2Additions;
-import ru.starshineproject.block.BlockTankCasing;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
+import static ru.starshineproject.block.BlocksProperties.*;
 
 public class ClientProxy extends CommonProxy{
 
     public static final IItemColor PURE_GLASS_ITEM_COLOR = ((stack, tintIndex) -> EnumDyeColor.byMetadata(stack.getItemDamage()).getColorValue());
     public static final IBlockColor PURE_GLASS_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> EnumDyeColor.byMetadata(state.getBlock().getMetaFromState(state)).getColorValue());
-    public static final IItemColor CASING_ITEM_COLOR = ((stack, tintIndex) -> BlockTankCasing.Casing.getAsMeta(stack.getItemDamage()).getColor());
-    public static final IBlockColor CASING_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> BlockTankCasing.Casing.getAsMeta(state.getBlock().getMetaFromState(state)).getColor());
+    public static final IItemColor CASING_ITEM_COLOR = ((stack, tintIndex) -> Casing.getAsMeta(stack.getItemDamage()).getColor());
+    public static final IBlockColor CASING_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> Casing.getAsMeta(state.getBlock().getMetaFromState(state)).getColor());
 
     public static final IStateMapper normalStateMapper = new StateMapperBase() {
         @Override
         protected @Nonnull ModelResourceLocation getModelResourceLocation(IBlockState state) {
             return new ModelResourceLocation(Block.REGISTRY.getNameForObject(state.getBlock()), "normal");
+        }
+    };
+
+    public static final IStateMapper connectedStateMapper = new StateMapperBase() {
+        @Override
+        @Nonnull
+        protected ModelResourceLocation getModelResourceLocation(IBlockState state) {
+            int type = state.getProperties().containsKey(NORTH) && state.getValue(NORTH) ? 1 : 0;
+            type |= state.getProperties().containsKey(EAST) && state.getValue(EAST) ? 1 << 1 : 0;
+            type |= state.getProperties().containsKey(SOUTH) && state.getValue(SOUTH) ? 1 << 2 : 0;
+            type |= state.getProperties().containsKey(WEST) && state.getValue(WEST) ? 1 << 3 : 0;
+            type |= state.getProperties().containsKey(TOP) && state.getValue(TOP) ? 1 << 4 : 0;
+            type |= state.getProperties().containsKey(BOTTOM) && state.getValue(BOTTOM) ? 1 << 5 : 0;
+            String typeName = type == 0 ? "normal" : "type="+type;
+            return new ModelResourceLocation(Block.REGISTRY.getNameForObject(state.getBlock()), typeName);
         }
     };
 
