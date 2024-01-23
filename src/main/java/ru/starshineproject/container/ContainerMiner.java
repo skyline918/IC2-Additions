@@ -1,5 +1,6 @@
 package ru.starshineproject.container;
 
+import ic2.api.item.IElectricItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -25,8 +26,21 @@ public class ContainerMiner extends Container {
         int playerInventoryOffset = (numRows - 4) * 18;
 
         int index = 0;
+        for (int k = 0; k < 5; ++k) {
+            this.addSlotToContainer(new Slot(this.miner, index, 8 + k * 18, 18 + 5 * 18) {
+                @Override
+                public boolean isItemValid(@Nonnull ItemStack stack) {
+                    if (!(stack.getItem() instanceof IElectricItem)) return false;
+                    IElectricItem item = (IElectricItem) stack.getItem();
+
+                    return item.canProvideEnergy(stack) && item.getTier(stack) == ContainerMiner.this.miner.config.tier;
+                }
+            });
+            index++;
+        }
+
         for (int j = 0; j < numRows; ++j)
-            for (int k = 6; k < 9; ++k) {
+            for (int k = 5; k < 9; ++k) {
                 this.addSlotToContainer(new Slot(this.miner, index, 8 + k * 18, 18 + j * 18));
                 index++;
             }

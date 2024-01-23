@@ -21,7 +21,7 @@ tile.miner.status.inventory_is_full=Slots are full
 tile.miner.status.blacklist-dim=Dim blacklist!
 
 gui.miner.tier=Miner T%d
-gui.miner.sinkTier=IC2 Tier: %d
+gui.miner.sinkTier=Max: %d eu/t
 gui.miner.owner=Owner: %s
 gui.miner.height=Height: %d (%d)
 gui.miner.scanned=Scanned: %d

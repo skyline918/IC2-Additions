@@ -64,6 +64,7 @@ repositories {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
     implementation(files("libs/industrialcraft-2-2.8.222-ex112-api.jar"))
+    implementation(files("libs/spark-forge1122.jar"))
 }
 
 jar.finalizedBy('reobfJar' )

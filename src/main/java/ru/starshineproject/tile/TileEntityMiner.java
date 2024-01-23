@@ -2,6 +2,8 @@ package ru.starshineproject.tile;
 
 import com.mojang.authlib.GameProfile;
 import ic2.api.energy.prefab.BasicSink;
+import ic2.api.item.ElectricItem;
+import ic2.api.item.IElectricItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockLiquid;
 import net.minecraft.block.state.IBlockState;
@@ -129,14 +131,14 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     public TileEntityMiner() {
         this.ic2EnergySink = new BasicSink(this, IC2AdditionsConfig.miner_1.capacity, IC2AdditionsConfig.miner_1.tier);
         this.config = IC2AdditionsConfig.miner_1;
-        this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
+        this.inventory = NonNullList.withSize(29, ItemStack.EMPTY);
         this.status = Status.DISABLED_CONFIG;
     }
 
     public TileEntityMiner(IC2AdditionsConfig.Miner config) {
         this.ic2EnergySink = new BasicSink(this, config.capacity, config.tier);
         this.config = config;
-        this.inventory = NonNullList.withSize(18, ItemStack.EMPTY);
+        this.inventory = NonNullList.withSize(29, ItemStack.EMPTY);
         this.status = config.enabled ? Status.NO_ENERGY : Status.DISABLED_CONFIG;
     }
 
@@ -189,6 +191,39 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         return false;
     }
 
+    private boolean canUseEnergy(double amount) {
+        int scrapedEnergy = 0;
+        for (int i = 0; i < 5; i++) {
+            ItemStack stack = inventory.get(i);
+            if (stack.isEmpty()) continue;
+            if (!(stack.getItem() instanceof IElectricItem)) continue;
+            IElectricItem item = (IElectricItem) stack.getItem();
+
+            if (item.canProvideEnergy(stack)) {
+                scrapedEnergy += ElectricItem.manager.getCharge(stack);
+            }
+
+            if (scrapedEnergy > amount) return true;
+        }
+        return false;
+    }
+
+    private void useEnergy(double amount) {
+        double required = amount;
+        for (int i = 0; i < 5; i++) {
+            ItemStack stack = inventory.get(i);
+            if (stack.isEmpty()) continue;
+            if (!(stack.getItem() instanceof IElectricItem)) continue;
+
+            double toUse = Math.min(required, ElectricItem.manager.getCharge(stack));
+            ElectricItem.manager.discharge(stack, toUse, this.config.tier, true, true, false);
+            required -= toUse;
+
+            if (required <= 0) return;
+
+        }
+    }
+
     @Override
     public void update() {
         ticks++;
@@ -208,7 +243,8 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         while (updates < config.maxScansPerUpdate) {
             updates++;
 
-            if (!ic2EnergySink.canUseEnergy(config.requiredEnergyToScan + config.requiredEnergyToMine)) {
+//            if (!ic2EnergySink.canUseEnergy(config.requiredEnergyToScan + config.requiredEnergyToMine)) {
+            if (!this.canUseEnergy(config.requiredEnergyToScan + config.requiredEnergyToMine)) {
                 this.lastUpdated = Instant.now().toEpochMilli();
                 this.setStatus(Status.NO_ENERGY);
                 return;
@@ -223,7 +259,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
                 continue;
             }
 
-            ic2EnergySink.useEnergy(config.requiredEnergyToScan);
+            this.useEnergy(config.requiredEnergyToScan);
             lastUpdated += config.requiredEnergyToScan;
 
             IBlockState state = world.getBlockState(cursor);
@@ -231,7 +267,6 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
 
             ItemStack result = canMine(block, state);
             if (result == null) {
-                totalScanned++;
                 if (moveNextOrFinish()) break;
                 continue;
             }
@@ -239,10 +274,8 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
             IItemHandler itemHandler = this.getCapability(ITEM_HANDLER_CAPABILITY, null);
             boolean pushed = pushStack(result, itemHandler);
             if (pushed) {
-                totalScanned++;
-                totalMined++;
                 lastUpdated += config.msToMine;
-                ic2EnergySink.useEnergy(config.requiredEnergyToMine);
+                this.useEnergy(config.requiredEnergyToMine);
                 mine(block, state);
                 if (moveNextOrFinish()) break;
             } else {
@@ -271,6 +304,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
      * **/
     private boolean moveNextOrFinish() {
         boolean hasNext = shiftPos();
+        totalScanned++;
         if (!hasNext) {
             this.lastUpdated = Instant.now().toEpochMilli();
             setStatus(Status.FINISHED);
@@ -286,7 +320,7 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
     private boolean pushStack(ItemStack passStack, @Nullable IItemHandler handler) {
         if (handler == null) return false;
         int slot = -1;
-        for (int j = 0; j < handler.getSlots(); j++) {
+        for (int j = 5; j < handler.getSlots(); j++) {
             if (handler.insertItem(j, passStack, true).isEmpty()) {
                 slot = j;
                 break;
