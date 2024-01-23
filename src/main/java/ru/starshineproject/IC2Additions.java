@@ -1,7 +1,6 @@
 package ru.starshineproject;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockColored;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -11,10 +10,8 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.logging.log4j.Logger;
-import ru.starshineproject.gui.GuiHandler;
 import ru.starshineproject.proxy.CommonProxy;
 
 import javax.annotation.Nonnull;
@@ -74,6 +71,7 @@ public class IC2Additions {
         public static final Item miner_5 = ObjectHolder();
         public static final Item pure_glass = ObjectHolder();
         public static final Item tank_casing = ObjectHolder();
+        public static final Item tank_controller = ObjectHolder();
     }
 
     @GameRegistry.ObjectHolder(MOD_ID)
@@ -85,6 +83,7 @@ public class IC2Additions {
         public static final Block miner_5 = ObjectHolder();
         public static final Block pure_glass = ObjectHolder();
         public static final Block tank_casing = ObjectHolder();
+        public static final Block tank_controller = ObjectHolder();
     }
 
     @Nonnull

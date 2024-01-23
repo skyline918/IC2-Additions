@@ -1,0 +1,26 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "uvlock": true,
+    "model": "ic2additions:tint_cube_with_face",
+    "textures": {
+      "all": "ic2additions:blocks/tank/casing",
+      "particle": "#all",
+      "up": "#all",
+      "down": "#all",
+      "north": "#all",
+      "south": "#all",
+      "west": "#all",
+      "east": "#all",
+      "face": "ic2additions:blocks/tanker/face"
+    }
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing=north": [{}],
+    "facing=south": [{"y": 180}],
+    "facing=west": [{"y": 270}],
+    "facing=east": [{"y": 90}]
+  }
+}

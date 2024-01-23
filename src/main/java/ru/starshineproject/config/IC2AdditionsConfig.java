@@ -17,6 +17,9 @@ public class IC2AdditionsConfig {
     public static Miner miner_4 = new Miner(4);
     public static Miner miner_5 = new Miner(5);
 
+    @Config.RangeInt(min = 3, max = 50)
+    public static int maxTankerSize = 20;
+
     public static Miner getConfigFromLevel(int tier) {
         switch (tier) {
             case 2: return miner_2;

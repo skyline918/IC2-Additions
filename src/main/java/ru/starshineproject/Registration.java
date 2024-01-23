@@ -22,11 +22,13 @@ import net.minecraftforge.registries.IForgeRegistry;
 import ru.starshineproject.block.BlockMiner;
 import ru.starshineproject.block.BlockPureGlass;
 import ru.starshineproject.block.BlockTankCasing;
+import ru.starshineproject.block.BlockTankerController;
 import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
 import ru.starshineproject.item.ItemMiner;
 import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.tile.TileEntityMiner;
+import ru.starshineproject.tile.TileEntityTankController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +48,10 @@ public class Registration {
         registerBlock("miner_5", new BlockMiner(IC2AdditionsConfig.miner_5), registry);
         registerBlock("pure_glass", new BlockPureGlass(), registry);
         registerBlock("tank_casing", new BlockTankCasing(), registry);
+        registerBlock("tank_controller", new BlockTankerController(), registry);
 
         GameRegistry.registerTileEntity(TileEntityMiner.class, new ResourceLocation(IC2Additions.MOD_ID, "miner"));
+        GameRegistry.registerTileEntity(TileEntityTankController.class, new ResourceLocation(IC2Additions.MOD_ID, "tank_controller"));
 
     }
 
@@ -111,6 +115,7 @@ public class Registration {
         registerItem("miner_3", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_3), registry);
         registerItem("miner_4", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_4), registry);
         registerItem("miner_5", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_5), registry);
+        registerItem("tank_controller", new ItemBlock(IC2Additions.Blocks.tank_controller), registry);
         registerBlockSubItem("pure_glass", IC2Additions.Blocks.pure_glass, registry);
         registerBlockSubItem("tank_casing", IC2Additions.Blocks.tank_casing, registry);
     }
