@@ -15,7 +15,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.tile.IColored;
-import ru.starshineproject.tile.TileEntityTankController;
+import ru.starshineproject.tile.tanker.TileEntityTankController;
 import ru.starshineproject.tile.renderers.TileEntityTankControllerRenderer;
 
 import javax.annotation.Nonnull;
@@ -70,6 +70,8 @@ public class ClientProxy extends CommonProxy{
         Minecraft.getMinecraft().getItemColors().registerItemColorHandler(CASING_ITEM_COLOR, IC2Additions.Blocks.tank_casing);
         Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(TANKER_ENTRY_BLOCK_COLOR, IC2Additions.Blocks.tank_controller);
         Minecraft.getMinecraft().getItemColors().registerItemColorHandler(TANKER_ENTRY_ITEM_COLOR, IC2Additions.Blocks.tank_controller);
+        Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(TANKER_ENTRY_BLOCK_COLOR, IC2Additions.Blocks.tank_bus);
+        Minecraft.getMinecraft().getItemColors().registerItemColorHandler(TANKER_ENTRY_ITEM_COLOR, IC2Additions.Blocks.tank_bus);
     }
     public void postInit(){
         super.postInit();

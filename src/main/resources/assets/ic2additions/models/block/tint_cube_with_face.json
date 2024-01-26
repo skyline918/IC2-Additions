@@ -17,7 +17,7 @@
       "from": [ 3, 3, -0.01 ],
       "to": [ 13, 13, -0.01 ],
       "faces": {
-        "north": { "texture": "#face","uv": [0, 0, 16, 16], "cullface": "south" }
+        "north": { "texture": "#face","uv": [0, 0, 16, 16], "cullface": "north"}
       }
     }
   ]

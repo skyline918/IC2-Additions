@@ -19,16 +19,14 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.registries.IForgeRegistry;
-import ru.starshineproject.block.BlockMiner;
-import ru.starshineproject.block.BlockPureGlass;
-import ru.starshineproject.block.BlockTankCasing;
-import ru.starshineproject.block.BlockTankerController;
+import ru.starshineproject.block.*;
 import ru.starshineproject.command.CommandReloadConfig;
 import ru.starshineproject.config.IC2AdditionsConfig;
 import ru.starshineproject.item.ItemMiner;
 import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.tile.TileEntityMiner;
-import ru.starshineproject.tile.TileEntityTankController;
+import ru.starshineproject.tile.tanker.TileEntityTankController;
+import ru.starshineproject.tile.tanker.TileEntityTankerBus;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +47,11 @@ public class Registration {
         registerBlock("pure_glass", new BlockPureGlass(), registry);
         registerBlock("tank_casing", new BlockTankCasing(), registry);
         registerBlock("tank_controller", new BlockTankerController(), registry);
+        registerBlock("tank_bus", new BlockTankerBus(), registry);
 
         GameRegistry.registerTileEntity(TileEntityMiner.class, new ResourceLocation(IC2Additions.MOD_ID, "miner"));
         GameRegistry.registerTileEntity(TileEntityTankController.class, new ResourceLocation(IC2Additions.MOD_ID, "tank_controller"));
+        GameRegistry.registerTileEntity(TileEntityTankerBus.class, new ResourceLocation(IC2Additions.MOD_ID, "tank_bus"));
 
     }
 
@@ -116,6 +116,7 @@ public class Registration {
         registerItem("miner_4", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_4), registry);
         registerItem("miner_5", new ItemMiner((BlockMiner) IC2Additions.Blocks.miner_5), registry);
         registerItem("tank_controller", new ItemBlock(IC2Additions.Blocks.tank_controller), registry);
+        registerItem("tank_bus", new ItemBlock(IC2Additions.Blocks.tank_bus), registry);
         registerBlockSubItem("pure_glass", IC2Additions.Blocks.pure_glass, registry);
         registerBlockSubItem("tank_casing", IC2Additions.Blocks.tank_casing, registry);
     }

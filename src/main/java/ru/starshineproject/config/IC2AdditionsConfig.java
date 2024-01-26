@@ -19,6 +19,10 @@ public class IC2AdditionsConfig {
 
     @Config.RangeInt(min = 3, max = 50)
     public static int maxTankerSize = 20;
+    @Config.RangeInt(min = 1, max = 1000000)
+    public static int millibucketsPerBlock = 1000;
+    @Config.RangeInt(min = 1, max = 10)
+    public static int tankerCasingMultiplier = 1;
 
     public static Miner getConfigFromLevel(int tier) {
         switch (tier) {

@@ -72,6 +72,7 @@ public class IC2Additions {
         public static final Item pure_glass = ObjectHolder();
         public static final Item tank_casing = ObjectHolder();
         public static final Item tank_controller = ObjectHolder();
+        public static final Item tank_bus = ObjectHolder();
     }
 
     @GameRegistry.ObjectHolder(MOD_ID)
@@ -84,6 +85,7 @@ public class IC2Additions {
         public static final Block pure_glass = ObjectHolder();
         public static final Block tank_casing = ObjectHolder();
         public static final Block tank_controller = ObjectHolder();
+        public static final Block tank_bus = ObjectHolder();
     }
 
     @Nonnull

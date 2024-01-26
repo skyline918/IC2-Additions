@@ -1,32 +1,52 @@
-package ru.starshineproject.tile;
+package ru.starshineproject.tile.tanker;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.block.BlocksProperties;
 import ru.starshineproject.config.IC2AdditionsConfig;
+import ru.starshineproject.tile.IColored;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-public class TileEntityTankController extends TileEntity implements ITickable, IColored {
-
+public class TileEntityTankController extends TileEntity implements ITickable, IFluidHandler, IColored {
     public int tier = -1;
     public Status status = Status.NULL;
+    protected FluidTank fluidTank;
+    protected FluidTank oldTank;
+    protected int minX = 0, minZ = 0, minY = 0;
+    protected int maxX = 0, maxZ = 0, maxY = 0;
 
-    private int minX = 0, minZ = 0, minY = 0;
-    private int maxX = 0, maxZ = 0, maxY = 0;
+    Set<TileEntityTankerBus> buses = new HashSet<>();
 
     public TileEntityTankController(){
     }
+
+    int ticks = 1;
     @Override
     public void update() {
-
+        if(!world.isRemote) return;
+        ticks++;
+        if(ticks%40==0) validateTanker();
     }
 
     @Override
@@ -34,20 +54,93 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         validateTanker();
     }
 
+    @Override
+    @ParametersAreNonnullByDefault
+    public void readFromNBT(NBTTagCompound tag)
+    {
+        super.readFromNBT(tag);
+        if(tag.hasKey("tanker")){
+            NBTTagCompound tankerTag = tag.getCompoundTag("tanker");
+            if(!tankerTag.hasKey("old") || !tankerTag.hasKey("volume"))
+                return;
+            int tankerCapacity = tankerTag.getInteger("volume");
+            FluidTank interactWith;
+            if(tankerTag.getBoolean("old")){
+                oldTank = new FluidTank(tankerCapacity);
+                interactWith = oldTank;
+            }else {
+                fluidTank = new FluidTank(tankerCapacity);
+                interactWith = fluidTank;
+            }
+            FluidStack fluidStack = FluidStack.loadFluidStackFromNBT(tankerTag);
+            if(fluidStack == null)
+                return;
+            interactWith.fill(fluidStack,true);
+        }
+    }
+
+    @Override
+    @Nonnull
+    @ParametersAreNonnullByDefault
+    public NBTTagCompound writeToNBT(NBTTagCompound tag)
+    {
+        tag = super.writeToNBT(tag);
+        NBTTagCompound tankerTag = new NBTTagCompound();
+        FluidStack fluidStack;
+        if(oldTank != null){
+            fluidStack = oldTank.getFluid();
+            if(fluidStack != null){
+                tankerTag.setBoolean("old", true);
+                tankerTag.setInteger("volume", oldTank.getCapacity());
+                fluidStack.writeToNBT(tankerTag);
+            }
+        }else {
+            if(fluidTank!=null){
+                fluidStack = fluidTank.getFluid();
+                if(fluidStack != null){
+                    tankerTag.setBoolean("old", false);
+                    tankerTag.setInteger("volume", fluidTank.getCapacity());
+                    fluidStack.writeToNBT(tankerTag);
+                }
+            }
+        }
+        tag.setTag("tanker",tankerTag);
+        return tag;
+    }
+
     private void validateTanker(){
+        clearBuses();
         if(!initTankSize()){
             status = Status.NULL;
+            if(fluidTank!=null) oldTank = fluidTank;
             return;
         }
         if(!hasFrame()){
             status = Status.BROKEN_FRAME;
+            if(fluidTank!=null) oldTank = fluidTank;
             return;
         }
         if(!isHermetic()){
             status = Status.NOT_HERMETIC;
+            if(fluidTank!=null) oldTank = fluidTank;
             return;
         }
         status = Status.INITIALIZED;
+        initFluidTank();
+    }
+
+    private void initFluidTank(){
+        int volume = (maxZ - minZ) * (maxX - minX) * (maxY - minY);
+        volume *= tier * IC2AdditionsConfig.tankerCasingMultiplier;
+        volume *= IC2AdditionsConfig.millibucketsPerBlock;
+
+        fluidTank = new FluidTank(volume);
+        //DEBUG
+        fluidTank.fill(new FluidStack(FluidRegistry.LAVA,volume/3),true);
+        if(oldTank != null){
+            fluidTank.fill(oldTank.getFluid(),true);
+            oldTank = null;
+        }
     }
 
     static BlockPos.MutableBlockPos mutBP = new BlockPos.MutableBlockPos();
@@ -125,7 +218,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
             count++;
         }
 
-        return maxX - minX >= 3 && maxY - minY >= 3 && maxZ - minZ >= 3;
+        return maxX - minX > 3 && maxY - minY > 3 && maxZ - minZ > 3;
     }
 
     private boolean hasFrame(){
@@ -223,12 +316,12 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     private boolean hermeticBlockInvalid(int posX, int posY, int posZ){
         if(posX == this.pos.getX() && posY == this.pos.getY() && posZ == this.pos.getZ())
             return false;
-        return hermeticBlockInvalid(world,posX,posY,posZ);
+        return hermeticBlockInvalid(world,posX,posY,posZ, this);
     }
-    private static boolean hermeticBlockInvalid(World world, int posX, int posY, int posZ){
+    private static boolean hermeticBlockInvalid(World world, int posX, int posY, int posZ, TileEntityTankController controller){
         IBlockState state = getBlockState(world,posX,posY,posZ);
-        if(state == null)
-            return true;
+        if(state == null) return true;
+        if(canSaveBus(getTile(world, posX, posY, posZ), controller)) return false;
         return !validHermeticBlock(state);
     }
 
@@ -240,27 +333,50 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         return world.getBlockState(mutBP);
     }
 
+    private static boolean canSaveBus(TileEntity tile, TileEntityTankController controller){
+        if(tile instanceof TileEntityTankerBus){
+            TileEntityTankerBus bus =  ((TileEntityTankerBus) tile);
+            bus.setController(controller);
+            controller.buses.add(bus);
+            return true;
+        }
+        return false;
+    }
+
+    @Nullable
+    private static TileEntity getTile(World world, int posX, int posY, int posZ){
+        mutBP.setPos(posX,posY,posZ);
+        if(!world.isBlockLoaded(mutBP))
+            return null;
+        return world.getTileEntity(mutBP);
+    }
+
     private static boolean ignoreBlock(IBlockState state){
         Block block = state.getBlock();
-        return block == IC2Additions.Blocks.tank_controller;
-        //      || block == IC2Additions.Blocks.tank_input;
-        //      || block == IC2Additions.Blocks.tank_output;
+        return block == IC2Additions.Blocks.tank_controller
+                || block == IC2Additions.Blocks.tank_bus;
     }
 
     private static boolean validHermeticBlock(IBlockState state){
         Block block = state.getBlock();
         return block == IC2Additions.Blocks.tank_casing
-                || block == IC2Additions.Blocks.pure_glass;
-        //      || block == IC2Additions.Blocks.tank_input;
-        //      || block == IC2Additions.Blocks.tank_output;
+                || block == IC2Additions.Blocks.pure_glass
+                || block == IC2Additions.Blocks.tank_bus;
     }
 
     private static boolean isInvalidBlockFrame(IBlockState state){
         Block block = state.getBlock();
         return block != IC2Additions.Blocks.tank_casing
-                && block != IC2Additions.Blocks.tank_controller;
-        //      || block == IC2Additions.Blocks.tank_input;
-        //      || block == IC2Additions.Blocks.tank_output;
+                && block != IC2Additions.Blocks.tank_controller
+                && block != IC2Additions.Blocks.tank_bus;
+    }
+
+    private void clearBuses(){
+        Iterator<TileEntityTankerBus> iterator = buses.iterator();
+        while (iterator.hasNext()){
+            iterator.next().setController(null);
+            iterator.remove();
+        }
     }
 
     @Override
@@ -268,6 +384,36 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         if(tier == -1)
             return 0xFFFFFFFF;
         return BlocksProperties.Casing.getAsMeta(tier-1).getColor();
+    }
+
+    @Override
+    public IFluidTankProperties[] getTankProperties() {
+        if(fluidTank == null)
+            return new IFluidTankProperties[0];
+        return fluidTank.getTankProperties();
+    }
+
+    @Override
+    public int fill(FluidStack resource, boolean doFill) {
+        if(fluidTank == null)
+            return 0;
+        return fluidTank.fill(resource,doFill);
+    }
+
+    @Nullable
+    @Override
+    public FluidStack drain(FluidStack resource, boolean doDrain) {
+        if(fluidTank == null)
+            return null;
+        return fluidTank.drain(resource,doDrain);
+    }
+
+    @Nullable
+    @Override
+    public FluidStack drain(int maxDrain, boolean doDrain) {
+        if(fluidTank == null)
+            return null;
+        return fluidTank.drain(maxDrain,doDrain);
     }
 
     public enum Status{
@@ -280,5 +426,27 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         Status(String langKey) {
             this.langKey = langKey;
         }
+    }
+
+    public FluidTank getCurrentTank(){
+        return oldTank == null ? fluidTank : oldTank;
+    }
+
+    public boolean isTankBroken(){
+        return oldTank != null;
+    }
+
+    public AxisAlignedBB getTankerAABB(boolean isGas, float percent){
+        int tileX = this.pos.getX(), tileY = this.pos.getY(), tileZ = this.pos.getZ();
+        float minX = tileX+this.minX+0.1f;
+        float maxX = tileX+this.maxX+0.9f;
+        float minZ = tileZ+this.minZ+0.1f;
+        float maxZ = tileZ+this.maxZ+0.9f;
+        float minY = tileY+this.minY+1f;
+        float maxY = tileY+this.maxY-1f;
+        if(!isGas){
+            maxY -= (this.maxY-this.minY-2)*percent;
+        }
+        return new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
     }
 }
