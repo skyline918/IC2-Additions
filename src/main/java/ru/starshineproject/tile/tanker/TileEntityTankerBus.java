@@ -16,6 +16,7 @@ import ru.starshineproject.tile.IColored;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 public class TileEntityTankerBus extends TileEntity implements IFluidHandler, IColored {
     TileEntityTankController controller;
@@ -44,6 +45,7 @@ public class TileEntityTankerBus extends TileEntity implements IFluidHandler, IC
     }
 
     @Override
+    @ParametersAreNonnullByDefault
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         NBTTagCompound tag = pkt.getNbtCompound();
         if (tag.getBoolean("hasController")) {

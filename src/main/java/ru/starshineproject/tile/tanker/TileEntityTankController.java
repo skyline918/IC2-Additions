@@ -4,6 +4,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
@@ -51,6 +53,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
 
     @Override
     public void onLoad() {
+        if(!world.isRemote) return;
         validateTanker();
     }
 
@@ -108,35 +111,62 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         return tag;
     }
 
+    @Nullable
+    @Override
+    public SPacketUpdateTileEntity getUpdatePacket() {
+        NBTTagCompound tag = new NBTTagCompound();
+        writeToNBT(tag);
+        tag.setByte("tier", (byte) tier);
+        tag.setByte("status", (byte) status.id);
+        return new SPacketUpdateTileEntity(pos,1,tag);
+    }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+        NBTTagCompound tag = pkt.getNbtCompound();
+        readFromNBT(tag);
+        if(tag.hasKey("tier"))tier = tag.getByte("tier");
+        if(tag.hasKey("status"))status = Status.getById(tag.getByte("status"));
+    }
+
     private void validateTanker(){
-        clearBuses();
+        IBlockState state = world.getBlockState(pos);
         if(!initTankSize()){
             status = Status.NULL;
-            if(fluidTank!=null) oldTank = fluidTank;
+            resetTank(state);
             return;
         }
         if(!hasFrame()){
             status = Status.BROKEN_FRAME;
-            if(fluidTank!=null) oldTank = fluidTank;
+            resetTank(state);
             return;
         }
         if(!isHermetic()){
             status = Status.NOT_HERMETIC;
-            if(fluidTank!=null) oldTank = fluidTank;
+            resetTank(state);
             return;
         }
         status = Status.INITIALIZED;
         initFluidTank();
+        world.notifyBlockUpdate(this.pos,state,state,2);
+    }
+
+    private void resetTank(IBlockState state){
+        clearBuses();
+        tier = -1;
+        if(fluidTank!=null) oldTank = fluidTank;
+        fluidTank = null;
+        world.notifyBlockUpdate(this.pos,state,state,2);
     }
 
     private void initFluidTank(){
         int volume = (maxZ - minZ) * (maxX - minX) * (maxY - minY);
         volume *= tier * IC2AdditionsConfig.tankerCasingMultiplier;
         volume *= IC2AdditionsConfig.millibucketsPerBlock;
+        if(fluidTank == null)
+            fluidTank = new FluidTank(volume);
 
-        fluidTank = new FluidTank(volume);
-        //DEBUG
-        fluidTank.fill(new FluidStack(FluidRegistry.LAVA,volume/3),true);
         if(oldTank != null){
             fluidTank.fill(oldTank.getFluid(),true);
             oldTank = null;
@@ -146,6 +176,8 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     static BlockPos.MutableBlockPos mutBP = new BlockPos.MutableBlockPos();
     private boolean initTankSize(){
         int tileX = this.pos.getX(), tileY = this.pos.getY(), tileZ = this.pos.getZ();
+        minX = 0; minZ = 0; minY = 0;
+        maxX = 0; maxZ = 0; maxY = 0;
 
         IBlockState state = getBlockState(world,tileX,tileY,tileZ);
         if(state == null) return false;
@@ -417,14 +449,29 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     }
 
     public enum Status{
-        NULL("tile.tanker.status.not_init"),
-        INITIALIZED("tile.tanker.status.all_ok"),
-        BROKEN_FRAME("tile.tanker.status.frameless"),
-        NOT_HERMETIC("tile.tanker.status.no_hermetic");
+        NULL("tile.tanker.status.not_init", 0),
+        INITIALIZED("tile.tanker.status.all_ok", 1),
+        BROKEN_FRAME("tile.tanker.status.frameless", 2),
+        NOT_HERMETIC("tile.tanker.status.no_hermetic", 3);
         public final String langKey;
-
-        Status(String langKey) {
+        public final int id;
+        public static final Status[] map = new Status[Status.values().length];
+        Status(String langKey, int id) {
             this.langKey = langKey;
+            this.id = id;
+        }
+
+        public static Status getById(int id){
+            if(id<0||id>=map.length)
+                return NULL;
+            return map[id];
+        }
+
+        static {
+            for (Status status:
+                    Status.values()) {
+                map[status.id]=status;
+            }
         }
     }
 
@@ -442,11 +489,11 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         float maxX = tileX+this.maxX+0.9f;
         float minZ = tileZ+this.minZ+0.1f;
         float maxZ = tileZ+this.maxZ+0.9f;
-        float minY = tileY+this.minY+1f;
-        float maxY = tileY+this.maxY-1f;
-        if(!isGas){
-            maxY -= (this.maxY-this.minY-2)*percent;
-        }
+        float minY = tileY+this.minY+1.01f;
+        float maxY = tileY+this.maxY;
+        if(!isGas)
+            maxY -= (maxY-minY)*(1-percent);
+        if(maxY == 0) maxY = minY;
         return new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
     }
 }
