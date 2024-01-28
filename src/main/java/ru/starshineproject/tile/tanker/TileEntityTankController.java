@@ -3,6 +3,8 @@ package ru.starshineproject.tile.tanker;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryBasic;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
@@ -30,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class TileEntityTankController extends TileEntity implements ITickable, IFluidHandler, IColored {
+    public final IInventory basicInventory = new InventoryBasic("",false,2);
     public int tier = -1;
     public Status status = Status.NULL;
     protected FluidTank fluidTank;

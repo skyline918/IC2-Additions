@@ -14,6 +14,9 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import ru.starshineproject.IC2Additions;
+import ru.starshineproject.gui.GuiMiner;
+import ru.starshineproject.gui.GuiTanker;
 import ru.starshineproject.tile.tanker.TileEntityTankController;
 
 import javax.annotation.Nonnull;
@@ -53,7 +56,9 @@ public class BlockTankerController extends Block {
         TileEntityTankController tank = (TileEntityTankController) tile;
         if(world.isRemote){
             player.sendMessage(new TextComponentString(tank.status.langKey));
+            return true;
         }
+        player.openGui(IC2Additions.instance, GuiTanker.id, world, pos.getX(), pos.getY(), pos.getZ());
         return true;
     }
 
