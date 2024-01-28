@@ -22,12 +22,12 @@ public class TileEntityTankControllerRenderer extends TileEntitySpecialRenderer<
         if(stack == null)
             return;
         float fillingPercent = (float) stack.amount / tank.getCapacity();
-        int a = stack.amount;
-        a = tank.getCapacity();
         if(fillingPercent == 0)
             return;
         boolean isGaseous = stack.getFluid().isGaseous();
         AxisAlignedBB aabb = tile.getTankerAABB(isGaseous,fillingPercent);
+        if(aabb == null)
+            return;
         float gasAlpha = -1;
         if(isGaseous)
             gasAlpha = fillingPercent;

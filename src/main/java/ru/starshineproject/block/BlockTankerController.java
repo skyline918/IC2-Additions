@@ -51,7 +51,7 @@ public class BlockTankerController extends Block {
         TileEntity tile = world.getTileEntity(pos);
         if (!(tile instanceof TileEntityTankController)) return true;
         TileEntityTankController tank = (TileEntityTankController) tile;
-        if(!world.isRemote) {
+        if(world.isRemote){
             player.sendMessage(new TextComponentString(tank.status.langKey));
         }
         return true;

@@ -21,7 +21,6 @@ public class TankerFluidRender {
         GL11.glPushAttrib(GL11.GL_LIGHTING_BIT);
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GlStateManager.enableBlend();
-        GlStateManager.disableCull();
 
         GlStateManager.translate(box.minX - renderPosX, box.minY - renderPosY, box.minZ - renderPosZ);
         box = box.offset(-box.minX, -box.minY, -box.minZ);
@@ -29,7 +28,6 @@ public class TankerFluidRender {
 
         renderCube(box, fluid, light, gasAlpha);
 
-        GlStateManager.enableCull();
         GlStateManager.disableBlend();
         GL11.glPopAttrib();
         GlStateManager.popMatrix();
