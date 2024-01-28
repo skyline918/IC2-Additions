@@ -33,7 +33,9 @@ public class ClientProxy extends CommonProxy{
     public static final IBlockColor TANKER_ENTRY_BLOCK_COLOR = ((IBlockState state, @Nullable IBlockAccess worldIn, @Nullable BlockPos pos, int tintIndex)-> {
         if(worldIn == null || pos == null) return 0xffffffff;
         TileEntity tile = worldIn.getTileEntity(pos);
-        if(tile instanceof IColored) return ((IColored) tile).getColor();
+        if(tile instanceof IColored) {
+            return ((IColored) tile).getColor();
+        }
         return 0xffffffff;
     });
 

@@ -56,7 +56,7 @@ public class TileEntityTankerBus extends TileEntity implements IFluidHandler, IC
             );
             TileEntity tile = this.world.getTileEntity(controllerPos);
             if(tile instanceof TileEntityTankController){
-                this.controller = (TileEntityTankController) tile;
+                setController((TileEntityTankController) tile);
             }
         }
     }

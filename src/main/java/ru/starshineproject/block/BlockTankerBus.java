@@ -13,13 +13,14 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import ru.starshineproject.tile.IColored;
 import ru.starshineproject.tile.tanker.TileEntityTankerBus;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
-public class BlockTankerBus extends Block {
+public class BlockTankerBus extends Block implements IColored {
     public static final PropertyDirection FACING = BlockDirectional.FACING;
 
     public BlockTankerBus(){
@@ -68,4 +69,8 @@ public class BlockTankerBus extends Block {
         return new BlockStateContainer(this,FACING);
     }
 
+    @Override
+    public int getColor() {
+        return 0;
+    }
 }

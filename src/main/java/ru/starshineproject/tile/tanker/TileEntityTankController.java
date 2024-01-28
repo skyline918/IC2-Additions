@@ -25,7 +25,6 @@ import ru.starshineproject.tile.IColored;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -34,7 +33,6 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     public int tier = -1;
     public Status status = Status.NULL;
     protected FluidTank fluidTank;
-    protected FluidTank oldTank;
     protected int minX = 0, minZ = 0, minY = 0;
     protected int maxX = 0, maxZ = 0, maxY = 0;
 
@@ -46,9 +44,15 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     int ticks = 1;
     @Override
     public void update() {
-        if(world.isRemote) return;
         ticks++;
-        if(ticks%40==0) validateTanker();
+        if(world.isRemote){
+            //UPDATE BLOCK COLOR
+            IBlockState state = world.getBlockState(pos);
+            world.notifyBlockUpdate(this.pos,state,state,2);
+            return;
+        }
+        if(ticks%40!=0) return;
+        validateTanker();
     }
 
     @Override
@@ -74,7 +78,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
             resetTank(state);
             return;
         }
-        if(status != Status.INITIALIZED) initFluidTank();
+        if(!isTankBroken()) initFluidTank();
         status = Status.INITIALIZED;
         world.notifyBlockUpdate(this.pos,state,state,2);
     }
@@ -82,9 +86,8 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     private void resetTank(IBlockState state){
         clearBuses();
         tier = -1;
-        if(fluidTank!=null) oldTank = fluidTank;
-        fluidTank = null;
         world.notifyBlockUpdate(this.pos,state,state,2);
+        markDirty();
     }
 
     private void initFluidTank(){
@@ -93,42 +96,35 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         volume *= IC2AdditionsConfig.millibucketsPerBlock;
         if(fluidTank == null)
             fluidTank = new FluidTank(volume);
-
-        if(oldTank != null){
-            fluidTank.fill(oldTank.getFluid(),true);
-            oldTank = null;
+        else {
+            fluidTank.setCapacity(volume);
         }
-
         if(fluidTank.getFluid() == null){
             fluidTank.fill(new FluidStack(FluidRegistry.LAVA, volume/3*2),true);
         }
+        markDirty();
     }
 
     @Override
     @ParametersAreNonnullByDefault
     public void readFromNBT(NBTTagCompound tag)
     {
-        super.readFromNBT(tag);
         if(tag.hasKey("tanker")){
             NBTTagCompound tankerTag = tag.getCompoundTag("tanker");
 
-            if(!tankerTag.hasKey("old") || !tankerTag.hasKey("volume"))
-                return;
+            if(tankerTag.getBoolean("tankBroken")) return;
+            if(!tankerTag.hasKey("volume")) return;
+
             int tankerCapacity = tankerTag.getInteger("volume");
-            FluidTank interactWith;
-            if(tankerTag.getBoolean("old")){
-                oldTank = new FluidTank(tankerCapacity);
-                interactWith = oldTank;
-            }else {
-                fluidTank = new FluidTank(tankerCapacity);
-                interactWith = fluidTank;
-                oldTank = null;
-            }
+
+            fluidTank = new FluidTank(tankerCapacity);
+
             FluidStack fluidStack = FluidStack.loadFluidStackFromNBT(tankerTag);
-            if(fluidStack == null)
-                return;
-            interactWith.fill(fluidStack,true);
+            if(fluidStack == null) return;
+
+            fluidTank.fill(fluidStack,true);
         }
+        super.readFromNBT(tag);
     }
 
     @Override
@@ -139,21 +135,12 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         tag = super.writeToNBT(tag);
         NBTTagCompound tankerTag = new NBTTagCompound();
         FluidStack fluidStack;
-        if(oldTank != null){
-            fluidStack = oldTank.getFluid();
+        tankerTag.setBoolean("tankBroken", isTankBroken());
+        if(fluidTank!=null){
+            fluidStack = fluidTank.getFluid();
             if(fluidStack != null){
-                tankerTag.setBoolean("old", true);
-                tankerTag.setInteger("volume", oldTank.getCapacity());
+                tankerTag.setInteger("volume", fluidTank.getCapacity());
                 fluidStack.writeToNBT(tankerTag);
-            }
-        }else {
-            if(fluidTank!=null){
-                fluidStack = fluidTank.getFluid();
-                if(fluidStack != null){
-                    tankerTag.setBoolean("old", false);
-                    tankerTag.setInteger("volume", fluidTank.getCapacity());
-                    fluidStack.writeToNBT(tankerTag);
-                }
             }
         }
         tag.setTag("tanker",tankerTag);
@@ -189,8 +176,6 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         if(tag.hasKey("maxY"))maxY = tag.getShort("maxY");
         if(tag.hasKey("minZ"))minZ = tag.getShort("minZ");
         if(tag.hasKey("maxZ"))maxZ = tag.getShort("maxZ");
-        IC2Additions.logger.info("m {}:{}:{} M {}:{}:{}",minX,minY,minZ,maxX,maxY,maxZ);
-        IC2Additions.logger.info("tier {} status {}",tier,status);
     }
 
     static BlockPos.MutableBlockPos mutBP = new BlockPos.MutableBlockPos();
@@ -440,14 +425,14 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
 
     @Override
     public IFluidTankProperties[] getTankProperties() {
-        if(fluidTank == null)
+        if(isTankBroken())
             return new IFluidTankProperties[0];
         return fluidTank.getTankProperties();
     }
 
     @Override
     public int fill(FluidStack resource, boolean doFill) {
-        if(fluidTank == null)
+        if(isTankBroken())
             return 0;
         return fluidTank.fill(resource,doFill);
     }
@@ -455,7 +440,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @Nullable
     @Override
     public FluidStack drain(FluidStack resource, boolean doDrain) {
-        if(fluidTank == null)
+        if(isTankBroken())
             return null;
         return fluidTank.drain(resource,doDrain);
     }
@@ -463,7 +448,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @Nullable
     @Override
     public FluidStack drain(int maxDrain, boolean doDrain) {
-        if(fluidTank == null)
+        if(isTankBroken())
             return null;
         return fluidTank.drain(maxDrain,doDrain);
     }
@@ -496,11 +481,11 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     }
 
     public FluidTank getCurrentTank(){
-        return oldTank == null ? fluidTank : oldTank;
+        return isTankBroken() ? null: fluidTank;
     }
 
     public boolean isTankBroken(){
-        return oldTank != null;
+        return status != Status.INITIALIZED;
     }
 
     public AxisAlignedBB getTankerAABB(boolean isGas, float percent){
