@@ -56,3 +56,20 @@ tile.tank_casing.aluminium.name=Tanker Plating Tier 2
 tile.tank_casing.stainless_steel.name=Tanker Plating Tier 3
 tile.tank_casing.titan.name=Tanker Plating Tier 4
 tile.tank_casing.tungsten_steel.name=Tanker Plating Tier 5
+
+tile.tank_controller.name=Multiblock Tanker Controller
+tile.tank_bus.name=Tanker Bus
+
+tile.tanker.status.not_init=Boundaries are not defined
+tile.tanker.status.all_ok=Initialized
+tile.tanker.status.frameless=The frame is not formed
+tile.tanker.status.no_hermetic=Leaky edges
+
+gui.tanker.name=Multiblock Tanker
+gui.tanker.fluid=Fluid:   %s
+gui.tanker.volume=Volume: %dmb
+gui.tanker.amount=Amount: %dmb
+gui.tanker.status=Status:
+
+
+

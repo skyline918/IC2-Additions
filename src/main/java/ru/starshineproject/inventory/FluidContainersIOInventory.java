@@ -2,11 +2,14 @@ package ru.starshineproject.inventory;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.ItemStackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.ITextComponent;
 
-public class IOFluidContainersInventory implements IInventory {
+import javax.annotation.Nonnull;
+
+public class FluidContainersIOInventory implements IInventory {
     private NonNullList<ItemStack> slots = NonNullList.withSize(2,ItemStack.EMPTY);
     @Override
     public int getSizeInventory() {
@@ -15,33 +18,53 @@ public class IOFluidContainersInventory implements IInventory {
 
     @Override
     public boolean isEmpty() {
-        return false;
+        for (ItemStack stack: slots) {
+            if(stack!=ItemStack.EMPTY)
+                return false;
+        }
+        return true;
     }
 
     @Override
+    @Nonnull
     public ItemStack getStackInSlot(int index) {
-        return null;
+        if(index<0 || index>2) return ItemStack.EMPTY;
+        return slots.get(index);
     }
 
     @Override
+    @Nonnull
     public ItemStack decrStackSize(int index, int count) {
-        return null;
+        if(index<0 || index>2) return ItemStack.EMPTY;
+        return ItemStackHelper.getAndSplit(slots, index, count);
     }
 
     @Override
+    @Nonnull
     public ItemStack removeStackFromSlot(int index) {
         if(index<0 || index>2) return ItemStack.EMPTY;
-        return null;
+        ItemStack stack = slots.get(index);
+        if(stack == ItemStack.EMPTY)
+            return ItemStack.EMPTY;
+        slots.set(index,ItemStack.EMPTY);
+        return stack;
     }
 
     @Override
     public void setInventorySlotContents(int index, ItemStack stack) {
+        this.slots.set(index, stack);
 
+        if (!stack.isEmpty() && stack.getCount() > this.getInventoryStackLimit())
+        {
+            stack.setCount(this.getInventoryStackLimit());
+        }
+
+        this.markDirty();
     }
 
     @Override
     public int getInventoryStackLimit() {
-        return 1;
+        return 64;
     }
 
     @Override

@@ -23,6 +23,7 @@ import java.awt.*;
 public class GuiTanker extends GuiContainer {
     private static final ResourceLocation TEXTURE = new ResourceLocation(IC2Additions.MOD_ID,"textures/gui/tanker.png");
     private static final int FONT_COLOR = new Color(120,255,255).getRGB();
+    private static final int FONT_COLOR_STATUS = new Color(160,255,255).getRGB();
     private final TileEntityTankController tankController;
     public static final int id = 1006;
     public GuiTanker(InventoryPlayer playerInv, TileEntityTankController tankController) {
@@ -42,6 +43,11 @@ public class GuiTanker extends GuiContainer {
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         fontRenderer.drawString(I18n.format("gui.tanker.name"), 8, 6, 4210752);
         renderFluid(10,20);
+        fontRenderer.drawString(I18n.format("gui.tanker.fluid", tankController.getFluidName()), 30, 20, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.tanker.amount", tankController.getFluidAmount()), 30, 30, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.tanker.volume", tankController.getVolume()), 10, 40, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.tanker.status"), 10, 83, FONT_COLOR_STATUS);
+        fontRenderer.drawString(tankController.status.toLocalizedString(), 13, 93, tankController.status.color);
     }
 
     @Override

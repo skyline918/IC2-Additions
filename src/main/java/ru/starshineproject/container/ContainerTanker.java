@@ -25,8 +25,13 @@ public class ContainerTanker extends Container {
 
         int playerInventoryOffset = 2 * 18;
 
-        this.addSlotToContainer(new Slot(this.tankController.basicInventory, 0, 113, 104));
-        this.addSlotToContainer(new Slot(this.tankController.basicInventory, 1, 149, 104));
+        this.addSlotToContainer(new Slot(this.tankController.basicInventory, 0, 114, 104));
+        this.addSlotToContainer(new Slot(this.tankController.basicInventory, 1, 149, 104){
+            @Override
+            public boolean isItemValid(ItemStack stack) {
+                return false;
+            }
+        });
 
 
         // player inventory and hotbar
@@ -74,11 +79,12 @@ public class ContainerTanker extends Container {
         FluidTank tank = tankController.getCurrentTank();
         if(tank == null) return true;
         FluidStack stack = tank.getFluid();
-        if(lastFluid != null && stack != null){
+        if(stack == null && lastFluid != null) return true;
+        if(lastFluid != null){
             if(lastFluid != stack.getFluid()) return true;
             return lastAmount != stack.amount;
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -97,7 +103,7 @@ public class ContainerTanker extends Container {
 
             if (index < 2)
             {
-                if (!this.mergeItemStack(itemstack1, 2, 54, true))
+                if (!this.mergeItemStack(itemstack1, 2, 38, true))
                     return ItemStack.EMPTY;
             }
             else if (!this.mergeItemStack(itemstack1, 0, 1, false))

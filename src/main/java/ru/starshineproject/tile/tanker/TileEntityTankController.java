@@ -3,8 +3,10 @@ package ru.starshineproject.tile.tanker;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockHorizontal;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
@@ -17,8 +19,12 @@ import net.minecraft.world.World;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
+import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.block.BlocksProperties;
 import ru.starshineproject.config.IC2AdditionsConfig;
@@ -27,6 +33,7 @@ import ru.starshineproject.tile.IColored;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.awt.*;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -54,8 +61,82 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
             world.notifyBlockUpdate(this.pos,state,state,2);
             return;
         }
+        updateInv();
         if(ticks%40!=0) return;
         validateTanker();
+    }
+
+    protected void updateInv(){
+        if(status != Status.INITIALIZED) return;
+
+        ItemStack inputSlot = basicInventory.getStackInSlot(0);
+        if(inputSlot == ItemStack.EMPTY) return;
+
+        boolean updated = false;
+        int count = Math.min(16,inputSlot.getCount());
+        for (int i = 0; i < count; i++) {
+            updated = updateInventory();
+            if(!updated) break;
+        }
+        if(updated)
+            markDirty();
+    }
+
+    protected boolean updateInventory(){
+        ItemStack inputSlot = basicInventory.getStackInSlot(0);
+        if(inputSlot == ItemStack.EMPTY) return false;
+
+        ItemStack output  = basicInventory.getStackInSlot(1);
+        if (output.getMaxStackSize() == output.getCount()) return false;
+
+        ItemStack input = inputSlot.copy();
+        input.setCount(1);
+
+        if(fluidTank == null) return false;
+        FluidStack tankFluid = fluidTank.getFluid();
+
+        int tankEmpty = fluidTank.getCapacity() - fluidTank.getFluidAmount();
+
+        //get input cap
+        IFluidHandlerItem itemFluidCapability = input.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+        if(itemFluidCapability == null) return false;
+
+        IFluidTankProperties[] properties = itemFluidCapability.getTankProperties();
+        if(properties.length < 1) return false;
+
+        boolean drain = true;
+        boolean fill = true;
+
+        // FILL TANKER
+        FluidStack drainStack = itemFluidCapability.drain(tankEmpty,false);
+        if(drainStack == null) drain = false;
+        if(drain && (tankFluid != null && tankFluid.getFluid() != drainStack.getFluid())) drain = false;
+        if(drain) drainStack = itemFluidCapability.drain(drainStack,true);
+
+        //Drain tanker
+        int fillCount = 0;
+        if(drain) fill = false;
+
+        if(fill && tankFluid == null) fill = false;
+        fillCount = itemFluidCapability.fill(tankFluid,false);
+        if(fill && fillCount == 0) fill = false;
+        if(fill) fillCount = itemFluidCapability.fill(tankFluid,true);
+
+        if(fill == drain) return false;
+
+        ItemStack toOutput = itemFluidCapability.getContainer();
+        if(output != ItemStack.EMPTY){
+            if(toOutput != ItemStack.EMPTY && !ItemStack.areItemsEqual(toOutput, output))
+                return false;
+            else output.grow(1);
+        }
+        else {
+            basicInventory.setInventorySlotContents(1,itemFluidCapability.getContainer());
+        }
+        inputSlot.shrink(1);
+        if(fill) drain(fillCount,true); // fill
+        if(drain) fill(drainStack,true); // drain
+        return true;
     }
 
     @Override
@@ -102,9 +183,6 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         else {
             fluidTank.setCapacity(volume);
         }
-        if(fluidTank.getFluid() == null){
-            fluidTank.fill(new FluidStack(FluidRegistry.LAVA, volume/3*2),true);
-        }
         markDirty();
     }
 
@@ -112,6 +190,12 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @ParametersAreNonnullByDefault
     public void readFromNBT(NBTTagCompound tag)
     {
+        super.readFromNBT(tag);
+        readTankerFromNBT(tag);
+        //TODO READ INVENTORY
+    }
+
+    protected void readTankerFromNBT(NBTTagCompound tag){
         if(tag.hasKey("tanker")){
             NBTTagCompound tankerTag = tag.getCompoundTag("tanker");
 
@@ -123,11 +207,8 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
             fluidTank = new FluidTank(tankerCapacity);
 
             FluidStack fluidStack = FluidStack.loadFluidStackFromNBT(tankerTag);
-            if(fluidStack == null) return;
-
-            fluidTank.fill(fluidStack,true);
+            fluidTank.setFluid(fluidStack);
         }
-        super.readFromNBT(tag);
     }
 
     @Override
@@ -135,14 +216,18 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @ParametersAreNonnullByDefault
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        tag = super.writeToNBT(tag);
+        //TODO WRITE INVENTORY
+        return writeTankerToNBT(super.writeToNBT(tag));
+    }
+
+    protected NBTTagCompound writeTankerToNBT(NBTTagCompound tag){
         NBTTagCompound tankerTag = new NBTTagCompound();
         FluidStack fluidStack;
         tankerTag.setBoolean("tankBroken", isTankBroken());
         if(fluidTank!=null){
+            tankerTag.setInteger("volume", fluidTank.getCapacity());
             fluidStack = fluidTank.getFluid();
             if(fluidStack != null){
-                tankerTag.setInteger("volume", fluidTank.getCapacity());
                 fluidStack.writeToNBT(tankerTag);
             }
         }
@@ -154,7 +239,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @Override
     public SPacketUpdateTileEntity getUpdatePacket() {
         NBTTagCompound tag = new NBTTagCompound();
-        writeToNBT(tag);
+        writeTankerToNBT(tag);
         tag.setByte("tier", (byte) tier);
         tag.setByte("status", (byte) status.id);
         tag.setShort("minX",(short) minX);
@@ -170,7 +255,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     @ParametersAreNonnullByDefault
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         NBTTagCompound tag = pkt.getNbtCompound();
-        readFromNBT(tag);
+        readTankerFromNBT(tag);
         if(tag.hasKey("tier"))tier = tag.getByte("tier");
         if(tag.hasKey("status"))status = Status.getById(tag.getByte("status"));
         if(tag.hasKey("minX"))minX = tag.getShort("minX");
@@ -437,7 +522,10 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     public int fill(FluidStack resource, boolean doFill) {
         if(isTankBroken())
             return 0;
-        return fluidTank.fill(resource,doFill);
+        int fill = fluidTank.fill(resource,doFill);
+        if(fill > 0 && doFill)
+            notifyBlockUpdateAndMD();
+        return fill;
     }
 
     @Nullable
@@ -445,7 +533,10 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     public FluidStack drain(FluidStack resource, boolean doDrain) {
         if(isTankBroken())
             return null;
-        return fluidTank.drain(resource,doDrain);
+        FluidStack stack = fluidTank.drain(resource,doDrain);
+        if(stack != null && doDrain)
+            notifyBlockUpdateAndMD();
+        return stack;
     }
 
     @Nullable
@@ -453,26 +544,71 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
     public FluidStack drain(int maxDrain, boolean doDrain) {
         if(isTankBroken())
             return null;
-        return fluidTank.drain(maxDrain,doDrain);
+        FluidStack stack = fluidTank.drain(maxDrain,doDrain);
+        if(stack != null && doDrain)
+            notifyBlockUpdateAndMD();
+        return stack;
+    }
+
+    public int getFluidAmount(){
+        if(status != Status.INITIALIZED) return 0;
+        if(fluidTank == null) return 0;
+        return fluidTank.getFluidAmount();
+    }
+
+    public int getVolume(){
+        if(status != Status.INITIALIZED) return 0;
+        if(fluidTank == null) return 0;
+        return fluidTank.getCapacity();
+    }
+
+    public String getFluidName(){
+        if(status != Status.INITIALIZED) return null;
+        if(fluidTank == null) return null;
+        FluidStack stack = fluidTank.getFluid();
+        if(stack == null) return null;
+        return stack.getLocalizedName();
+    }
+
+    protected void notifyBlockUpdateAndMD(){
+        IBlockState state = world.getBlockState(pos);
+        world.notifyBlockUpdate(pos,state,state,2);
+        markDirty();
     }
 
     public enum Status{
         NULL("tile.tanker.status.not_init", 0),
-        INITIALIZED("tile.tanker.status.all_ok", 1),
+        INITIALIZED("tile.tanker.status.all_ok", 1, new Color(100, 255, 100).getRGB()),
         BROKEN_FRAME("tile.tanker.status.frameless", 2),
         NOT_HERMETIC("tile.tanker.status.no_hermetic", 3);
         public final String langKey;
         public final int id;
+        public final int color;
         public static final Status[] map = new Status[Status.values().length];
+        public String langCache;
         Status(String langKey, int id) {
             this.langKey = langKey;
             this.id = id;
+            this.color = new Color(255, 100, 100).getRGB();
+        }
+
+        Status(String langKey, int id, int color) {
+            this.langKey = langKey;
+            this.id = id;
+            this.color = color;
         }
 
         public static Status getById(int id){
             if(id<0||id>=map.length)
                 return NULL;
             return map[id];
+        }
+
+        public String toLocalizedString() {
+            if (langCache == null) {
+                langCache = I18n.format(this.langKey);
+            }
+            return langCache;
         }
 
         static {

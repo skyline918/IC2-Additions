@@ -19,6 +19,7 @@ public class TankerFluidRender {
 
         GlStateManager.pushMatrix();
         GL11.glPushAttrib(GL11.GL_LIGHTING_BIT);
+        GlStateManager.disableLighting();
         GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GlStateManager.enableBlend();
 
@@ -29,6 +30,7 @@ public class TankerFluidRender {
         renderCube(box, fluid, light, gasAlpha);
 
         GlStateManager.disableBlend();
+        GlStateManager.enableLighting();
         GL11.glPopAttrib();
         GlStateManager.popMatrix();
     }
