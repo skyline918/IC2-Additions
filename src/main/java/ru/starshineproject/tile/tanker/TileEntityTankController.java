@@ -16,15 +16,12 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
-import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStackSimple;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.block.BlocksProperties;
 import ru.starshineproject.config.IC2AdditionsConfig;
@@ -114,7 +111,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         if(drain) drainStack = itemFluidCapability.drain(drainStack,true);
 
         //Drain tanker
-        int fillCount = 0;
+        int fillCount;
         if(drain) fill = false;
 
         if(fill && tankFluid == null) fill = false;
@@ -186,20 +183,20 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         markDirty();
     }
 
+    // WORK WITH NBT START
     @Override
     @ParametersAreNonnullByDefault
     public void readFromNBT(NBTTagCompound tag)
     {
         super.readFromNBT(tag);
         readTankerFromNBT(tag);
-        //TODO READ INVENTORY
+        readInventoryFromNBT(tag);
     }
 
     protected void readTankerFromNBT(NBTTagCompound tag){
         if(tag.hasKey("tanker")){
             NBTTagCompound tankerTag = tag.getCompoundTag("tanker");
 
-            if(tankerTag.getBoolean("tankBroken")) return;
             if(!tankerTag.hasKey("volume")) return;
 
             int tankerCapacity = tankerTag.getInteger("volume");
@@ -211,19 +208,31 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         }
     }
 
+    protected void readInventoryFromNBT(NBTTagCompound tag){
+        if(tag.hasKey("inv_io")){
+            NBTTagCompound inventoryTag = tag.getCompoundTag("inv_io");
+            if(inventoryTag.hasKey("input")){
+                NBTTagCompound inputTag = inventoryTag.getCompoundTag("input");
+                basicInventory.setInventorySlotContents(0,new ItemStack(inputTag));
+            }
+            if(inventoryTag.hasKey("output")){
+                NBTTagCompound inputTag = inventoryTag.getCompoundTag("output");
+                basicInventory.setInventorySlotContents(1,new ItemStack(inputTag));
+            }
+        }
+    }
+
     @Override
     @Nonnull
     @ParametersAreNonnullByDefault
     public NBTTagCompound writeToNBT(NBTTagCompound tag)
     {
-        //TODO WRITE INVENTORY
-        return writeTankerToNBT(super.writeToNBT(tag));
+        return writeInventoryToNBT(writeTankerToNBT(super.writeToNBT(tag)));
     }
 
     protected NBTTagCompound writeTankerToNBT(NBTTagCompound tag){
         NBTTagCompound tankerTag = new NBTTagCompound();
         FluidStack fluidStack;
-        tankerTag.setBoolean("tankBroken", isTankBroken());
         if(fluidTank!=null){
             tankerTag.setInteger("volume", fluidTank.getCapacity());
             fluidStack = fluidTank.getFluid();
@@ -232,6 +241,18 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
             }
         }
         tag.setTag("tanker",tankerTag);
+        return tag;
+    }
+
+    protected NBTTagCompound writeInventoryToNBT(NBTTagCompound tag){
+        ItemStack input = basicInventory.getStackInSlot(0);
+        ItemStack output = basicInventory.getStackInSlot(1);
+        if(input.isEmpty() && output.isEmpty())
+            return tag;
+        NBTTagCompound invTag = new NBTTagCompound();
+        if(!input.isEmpty()) invTag.setTag("input",input.writeToNBT(new NBTTagCompound()));
+        if(!output.isEmpty()) invTag.setTag("output",output.writeToNBT(new NBTTagCompound()));
+        tag.setTag("inv_io", invTag);
         return tag;
     }
 
@@ -265,6 +286,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         if(tag.hasKey("minZ"))minZ = tag.getShort("minZ");
         if(tag.hasKey("maxZ"))maxZ = tag.getShort("maxZ");
     }
+    // WORK WITH NBT FINISH
 
     static BlockPos.MutableBlockPos mutBP = new BlockPos.MutableBlockPos();
     private boolean initTankSize(){

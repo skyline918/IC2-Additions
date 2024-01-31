@@ -45,7 +45,7 @@ public class GuiTanker extends GuiContainer {
         renderFluid(10,20);
         fontRenderer.drawString(I18n.format("gui.tanker.fluid", tankController.getFluidName()), 30, 20, FONT_COLOR);
         fontRenderer.drawString(I18n.format("gui.tanker.amount", tankController.getFluidAmount()), 30, 30, FONT_COLOR);
-        fontRenderer.drawString(I18n.format("gui.tanker.volume", tankController.getVolume()), 10, 40, FONT_COLOR);
+        fontRenderer.drawString(I18n.format("gui.tanker.volume", tankController.getVolume()), 30, 40, FONT_COLOR);
         fontRenderer.drawString(I18n.format("gui.tanker.status"), 10, 83, FONT_COLOR_STATUS);
         fontRenderer.drawString(tankController.status.toLocalizedString(), 13, 93, tankController.status.color);
     }
