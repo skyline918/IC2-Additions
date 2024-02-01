@@ -56,3 +56,17 @@ tile.tank_casing.aluminium.name=Обшивка танкер второго ур�
 tile.tank_casing.stainless_steel.name=Обшивка танкера третьего уровня
 tile.tank_casing.titan.name=Обшивка танкер четвертого уровня
 tile.tank_casing.tungsten_steel.name=Обшивка танкера пятого уровня
+
+tile.tank_controller.name=Контроллер такнера
+tile.tank_bus.name=Интерфейс танкера
+
+tile.tanker.status.not_init=Каркас не найден
+tile.tanker.status.all_ok=Всё в порядке
+tile.tanker.status.frameless=Кракас не цельный
+tile.tanker.status.no_hermetic=Грани протекают
+
+gui.tanker.name=Многоблочный танкер
+gui.tanker.fluid=Жидкость:    %s
+gui.tanker.volume=Объем:      %dмб
+gui.tanker.amount=Количество: %dмб
+gui.tanker.status=Статус:

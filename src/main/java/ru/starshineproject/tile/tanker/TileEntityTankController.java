@@ -22,6 +22,8 @@ import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import ru.starshineproject.IC2Additions;
 import ru.starshineproject.block.BlocksProperties;
 import ru.starshineproject.config.IC2AdditionsConfig;
@@ -572,20 +574,23 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         return stack;
     }
 
+    @SideOnly(Side.CLIENT)
     public int getFluidAmount(){
-        if(status != Status.INITIALIZED) return 0;
+        if(isTankBroken()) return 0;
         if(fluidTank == null) return 0;
         return fluidTank.getFluidAmount();
     }
 
+    @SideOnly(Side.CLIENT)
     public int getVolume(){
-        if(status != Status.INITIALIZED) return 0;
+        if(isTankBroken()) return 0;
         if(fluidTank == null) return 0;
         return fluidTank.getCapacity();
     }
 
+    @SideOnly(Side.CLIENT)
     public String getFluidName(){
-        if(status != Status.INITIALIZED) return null;
+        if(isTankBroken()) return null;
         if(fluidTank == null) return null;
         FluidStack stack = fluidTank.getFluid();
         if(stack == null) return null;
@@ -641,6 +646,29 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         }
     }
 
+    private AxisAlignedBB cachedRenderBoundingBox = null;
+    @Override
+    @SideOnly(Side.CLIENT)
+    @Nonnull
+    public AxisAlignedBB getRenderBoundingBox() {
+        int tileX = this.pos.getX(), tileY = this.pos.getY(), tileZ = this.pos.getZ();
+        float minX = tileX+this.minX;
+        float maxX = tileX+this.maxX;
+        float minZ = tileZ+this.minZ;
+        float maxZ = tileZ+this.maxZ;
+        float minY = tileY+this.minY;
+        float maxY = tileY+this.maxY;
+        if(cachedRenderBoundingBox == null
+        || cachedRenderBoundingBox.minX!=minX
+        || cachedRenderBoundingBox.maxX!=maxX
+        || cachedRenderBoundingBox.minZ!=minZ
+        || cachedRenderBoundingBox.maxZ!=maxZ
+        || cachedRenderBoundingBox.minY!=minY
+        || cachedRenderBoundingBox.maxY!=maxY)
+            cachedRenderBoundingBox = new AxisAlignedBB(minX,minY,minZ,maxX,maxY,maxZ);
+        return cachedRenderBoundingBox;
+    }
+
     public FluidTank getCurrentTank(){
         return isTankBroken() ? null: fluidTank;
     }
@@ -649,6 +677,7 @@ public class TileEntityTankController extends TileEntity implements ITickable, I
         return status != Status.INITIALIZED;
     }
 
+    @SideOnly(Side.CLIENT)
     public AxisAlignedBB getTankerAABB(boolean isGas, float percent){
         int tileX = this.pos.getX(), tileY = this.pos.getY(), tileZ = this.pos.getZ();
         if(this.minX==0 &&this.maxX==0 &&this.minZ==0 &&this.maxZ==0 &&this.minY==0 &&this.maxY==0) return null;

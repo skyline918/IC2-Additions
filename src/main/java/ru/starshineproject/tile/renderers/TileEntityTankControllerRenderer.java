@@ -33,4 +33,10 @@ public class TileEntityTankControllerRenderer extends TileEntitySpecialRenderer<
             gasAlpha = fillingPercent;
         TankerFluidRender.render(aabb,gasAlpha,stack.getFluid(),getWorld().getCombinedLight(tile.getPos(), stack.getFluid().getLuminosity()));
     }
+
+    @Override
+    @ParametersAreNonnullByDefault
+    public boolean isGlobalRenderer(TileEntityTankController te) {
+        return true;
+    }
 }
