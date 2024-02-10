@@ -1,6 +1,5 @@
-# IC2-Additions *(tentative title)*
 ![](src/main/resources/assets/ic2additions/ic2c_rebranding.png)
-
+# IC2-Additions *(tentative title)*
 A small modification that adds items that improve the convenience of the game.
 
 ## Roadmap
