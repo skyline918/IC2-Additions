@@ -21,7 +21,10 @@ java {
 minecraft {
     mappings channel: 'stable', version: '39-1.12'
 
-    accessTransformer = file('src/main/resources/META-INF/ic2additions_at.cfg')
+    accessTransformer = files(
+            'src/main/resources/META-INF/ic2additions_at.cfg',
+            'ats/micdoodlecore_at.cfg'
+    )
 
     runs {
         client {

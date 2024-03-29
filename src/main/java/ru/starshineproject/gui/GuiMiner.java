@@ -49,7 +49,6 @@ public class GuiMiner extends GuiContainer {
         int radius = this.miner.config.radius;
         int diameter = (2 * radius + 1) ;
         double total = Math.max(1, diameter * diameter * this.miner.getPos().getY());
-        IC2Additions.logger.info("{}/{} ({})", this.miner.totalScanned, total, radius);
         return String.format("%s%%", df.format(((double) this.miner.totalScanned) / total * 100));
     }
 

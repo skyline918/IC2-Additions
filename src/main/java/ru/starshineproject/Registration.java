@@ -29,7 +29,9 @@ import ru.starshineproject.item.MultiItemBlock;
 import ru.starshineproject.tile.TileEntityMiner;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static ru.starshineproject.tile.TileEntityMiner.VALID_ORES;
 
@@ -74,7 +76,9 @@ public class Registration {
                         if (ore.getItem() instanceof ItemBlock) {
                             if (ore.getItem().getRegistryName() == null) continue;
 
-                            VALID_ORES.put(ore.getItem(), ore.getMetadata());
+                            VALID_ORES.computeIfAbsent(ore.getItem(), (a) -> new HashSet<>());
+                            Set<Integer> integers = VALID_ORES.get(ore.getItem());
+                            integers.add(ore.getMetadata());
                             newOres.add(String.format("%s.%d", ore.getItem().getRegistryName().toString(), ore.getMetadata()));
                         }
                     }
@@ -93,7 +97,10 @@ public class Registration {
                 Item item = Item.getByNameOrId(id);
                 if (item == null) throw new IllegalArgumentException("Not found in registry");
 
-                VALID_ORES.put(item, Integer.valueOf(meta));
+                VALID_ORES.computeIfAbsent(item, (a) -> new HashSet<>());
+                Set<Integer> integers = VALID_ORES.get(item);
+                integers.add(Integer.valueOf(meta));
+
             } catch (Exception err) {
                 IC2Additions.logger.warn("Failed to register miner ore '{}'. Error: {}", s, err.getMessage());
             }

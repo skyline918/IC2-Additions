@@ -22,16 +22,20 @@ import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntityLockableLoot;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.items.IItemHandler;
+import ru.starshineproject.IC2Additions;
 import ru.starshineproject.block.BlockMiner;
 import ru.starshineproject.config.IC2AdditionsConfig;
 import ru.starshineproject.container.ContainerMiner;
@@ -42,6 +46,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.awt.*;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 import static net.minecraft.world.GameType.SURVIVAL;
@@ -49,10 +54,11 @@ import static net.minecraftforge.items.CapabilityItemHandler.ITEM_HANDLER_CAPABI
 
 public class TileEntityMiner extends TileEntityLockableLoot implements ITickable {
 
-    public static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
     public static final UUID DEFAULT_UUID = new UUID(0,10);
     public static final String DEFAULT_NAME = "none";
-    public static final HashMap<Item, Integer> VALID_ORES = new HashMap<>();
+    public static final HashMap<Item, Set<Integer>> VALID_ORES = new HashMap<>();
+    private static final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+    private static final RayTraceResult dummyRaytrace = new RayTraceResult(new Vec3d(0D,0D,0D), EnumFacing.UP, cursor);
 
     public NonNullList<ItemStack> inventory;
     public BasicSink ic2EnergySink;
@@ -243,7 +249,6 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         while (updates < config.maxScansPerUpdate) {
             updates++;
 
-//            if (!ic2EnergySink.canUseEnergy(config.requiredEnergyToScan + config.requiredEnergyToMine)) {
             if (!this.canUseEnergy(config.requiredEnergyToScan + config.requiredEnergyToMine)) {
                 this.lastUpdated = Instant.now().toEpochMilli();
                 this.setStatus(Status.NO_ENERGY);
@@ -343,17 +348,16 @@ public class TileEntityMiner extends TileEntityLockableLoot implements ITickable
         if (block.isAir(state, world, cursor)) return null;
         if (block instanceof BlockLiquid) return null;
 
+        ItemStack itemstack = block.getPickBlock(state, dummyRaytrace, world, cursor, fakePlayer);
+        if (itemstack.isEmpty()) return null;
+
+        Set<Integer> metas = VALID_ORES.get(itemstack.getItem());
+        if (metas == null) return null;
+
         int exp = net.minecraftforge.common.ForgeHooks.onBlockBreakEvent(world, SURVIVAL, fakePlayer, cursor);
         if (exp == -1) return null;
 
-        // get getSilkTouchDrop is better, but it is protected (ATs can't help because of overrides)
-        @SuppressWarnings("deprecation") ItemStack itemstack = block.getItem(world, pos, state);
-        if (itemstack.isEmpty()) return null;
-
-        Integer meta = VALID_ORES.get(itemstack.getItem());
-        if (meta == null) return null;
-
-        if (meta == itemstack.getMetadata()) {
+        if (metas.contains(itemstack.getMetadata())) {
             return itemstack;
         }
         return null;
